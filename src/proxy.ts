@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { decrypt } from '@/lib/session'
+import { decrypt } from '@/backend/auth/session'
 
 const protectedRoutes = ['/account', '/checkout']
 const adminRoutes = ['/admin']
