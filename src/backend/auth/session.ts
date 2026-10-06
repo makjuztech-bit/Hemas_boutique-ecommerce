@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
-import { Role } from '@prisma/client'
+import { Role } from '@prisma/client' 
 
 const secretKey = process.env.AUTH_SECRET || 'secret'
 const encodedKey = new TextEncoder().encode(secretKey)
@@ -79,4 +79,4 @@ export async function getSession() {
   const session = cookieStore.get('session')?.value
   if (!session) return null
   return await decrypt(session)
-}
+} 
