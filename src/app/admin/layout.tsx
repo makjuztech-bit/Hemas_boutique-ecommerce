@@ -23,12 +23,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [adminUser, setAdminUser] = useState<any>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  // Don't wrap admin login page with admin sidebar
-  if (pathname === '/admin/login') {
-    return <>{children}</>
-  }
-
   useEffect(() => {
+    // Skip fetching user on the login page
+    if (pathname === '/admin/login') return
+
     async function loadAdminUser() {
       try {
         const res = await fetch('/api/auth/me')
@@ -41,7 +39,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }
     }
     loadAdminUser()
-  }, [])
+  }, [pathname])
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -57,19 +55,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'Registered Users', href: '/admin/users', icon: Users },
   ]
 
+  // Don't wrap admin login page with admin sidebar
+  if (pathname === '/admin/login') {
+    return <>{children}</>
+  }
+
   return (
     <div className="min-h-screen flex bg-zinc-950 text-zinc-100">
       {/* Mobile Top Bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-zinc-900 border-b border-zinc-800 px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-amber-500 text-black flex items-center justify-center font-bold">
+          <div className="w-8 h-8 rounded-lg bg-amber-500 text-black flex items-center justify-center font-bold text-sm">
             HB
           </div>
           <span className="font-bold text-sm text-white">Boutique Admin</span>
         </div>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 text-zinc-400 hover:text-white"
+          className="p-2 text-zinc-400 hover:text-white cursor-pointer"
         >
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
