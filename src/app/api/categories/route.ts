@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/backend/db/prisma'
-import { getSession } from '@/backend/auth/session'
+import { requireAdmin } from '@/backend/auth/session'
+import { validateCsrf, csrfErrorResponse } from '@/lib/csrf'
 
 export async function GET() {
   try {
@@ -22,10 +23,11 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession()
-    if (!session || (session.role !== 'SUPER_ADMIN' && session.role !== 'STAFF')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    if (!validateCsrf(req)) {
+      return csrfErrorResponse()
     }
+
+    await requireAdmin()
 
     const { name, description } = await req.json()
     if (!name) {
@@ -45,6 +47,38 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ category })
   } catch (error: any) {
     console.error('Create category error:', error)
-    return NextResponse.json({ error: error?.message || 'Failed to create category' }, { status: 500 })
+    return NextResponse.json(
+      { error: error?.message === 'FORBIDDEN' ? 'Access denied' : (error?.message || 'Failed to create category') },
+      { status: error?.message === 'FORBIDDEN' ? 403 : 500 }
+    )
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    if (!validateCsrf(req)) {
+      return csrfErrorResponse()
+    }
+
+    await requireAdmin()
+
+    const { searchParams } = new URL(req.url)
+    const id = searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json({ error: 'Category ID is required' }, { status: 400 })
+    }
+
+    await prisma.category.delete({
+      where: { id },
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    console.error('Delete category error:', error)
+    return NextResponse.json(
+      { error: error?.message === 'FORBIDDEN' ? 'Access denied' : 'Failed to delete category' },
+      { status: error?.message === 'FORBIDDEN' ? 403 : 500 }
+    )
   }
 }

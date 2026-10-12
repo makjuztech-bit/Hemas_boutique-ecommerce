@@ -2,8 +2,25 @@ import { NextRequest, NextResponse } from 'next/server'
 import { decrypt } from '@/backend/auth/session'
 
 // Public routes that anyone can access without logging in
-const publicCustomerRoutes = ['/login', '/register', '/api/auth']
+const publicCustomerRoutes = [
+  '/login',
+  '/register',
+  '/api/auth',
+  '/api/health',
+  '/api/webhooks',
+  '/robots.txt',
+  '/sitemap.xml',
+]
 const publicAdminRoutes = ['/admin/login']
+
+function applySecurityHeaders(res: NextResponse): NextResponse {
+  res.headers.set('X-Content-Type-Options', 'nosniff')
+  res.headers.set('X-Frame-Options', 'SAMEORIGIN')
+  res.headers.set('X-XSS-Protection', '1; mode=block')
+  res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  res.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  return res
+}
 
 export default async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname
@@ -12,7 +29,7 @@ export default async function middleware(req: NextRequest) {
   if (
     path.startsWith('/_next') ||
     path.startsWith('/favicon.ico') ||
-    path.match(/\.(png|jpg|jpeg|svg|webp|ico|css|js)$/)
+    path.match(/\.(png|jpg|jpeg|svg|webp|ico|css|js|txt|xml)$/)
   ) {
     return NextResponse.next()
   }
@@ -36,9 +53,9 @@ export default async function middleware(req: NextRequest) {
     }
   }
 
-  // Allow public auth endpoints
+  // Allow public endpoints
   if (isPublicAdminRoute || isPublicCustomerRoute) {
-    return NextResponse.next()
+    return applySecurityHeaders(NextResponse.next())
   }
 
   // Handle Admin routes protection
@@ -51,7 +68,7 @@ export default async function middleware(req: NextRequest) {
       loginUrl.searchParams.set('error', 'unauthorized')
       return NextResponse.redirect(loginUrl)
     }
-    return NextResponse.next()
+    return applySecurityHeaders(NextResponse.next())
   }
 
   // Mandatory Login Policy: If user is not authenticated, redirect to /login
@@ -63,7 +80,7 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  return NextResponse.next()
+  return applySecurityHeaders(NextResponse.next())
 }
 
 export const config = {

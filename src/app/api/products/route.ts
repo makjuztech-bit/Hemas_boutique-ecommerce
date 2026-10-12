@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/backend/db/prisma'
-import { getSession } from '@/backend/auth/session'
+import { requireAdmin } from '@/backend/auth/session'
+import { validateCsrf, csrfErrorResponse } from '@/lib/csrf'
 
 export async function GET(req: NextRequest) {
   try {
@@ -47,10 +48,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession()
-    if (!session || (session.role !== 'SUPER_ADMIN' && session.role !== 'STAFF')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    if (!validateCsrf(req)) {
+      return csrfErrorResponse()
     }
+
+    await requireAdmin()
 
     const { name, description, categoryId, price, stockQuantity, imageUrl, sku } = await req.json()
 
@@ -103,6 +105,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, product })
   } catch (error: any) {
     console.error('Create product error:', error)
-    return NextResponse.json({ error: error?.message || 'Failed to create product' }, { status: 500 })
+    return NextResponse.json(
+      { error: error?.message === 'FORBIDDEN' ? 'Access denied' : (error?.message || 'Failed to create product') },
+      { status: error?.message === 'FORBIDDEN' ? 403 : 500 }
+    )
   }
 }

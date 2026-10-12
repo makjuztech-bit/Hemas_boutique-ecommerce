@@ -4,6 +4,12 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
+  if (process.env.NODE_ENV === 'production' && process.env.FORCE_PRODUCTION_SEED !== 'true') {
+    console.error('FATAL: Seeding is blocked in production environments to protect live customer data.')
+    console.error('To initialize a production administrator safely, use: npm run admin:provision')
+    process.exit(1)
+  }
+
   console.log('Seeding comprehensive boutique data...')
 
   // 1. Create Super Admin

@@ -2,17 +2,39 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/backend/db/prisma'
 import bcrypt from 'bcryptjs'
 import { createSession } from '@/backend/auth/session'
+import { checkRateLimit } from '@/lib/rateLimit'
+import { validateCsrf, csrfErrorResponse } from '@/lib/csrf'
+import { z } from 'zod'
+
+const loginSchema = z.object({
+  email: z.string().email('Please provide a valid email address'),
+  password: z.string().min(1, 'Password is required'),
+})
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json()
+    if (!validateCsrf(req)) {
+      return csrfErrorResponse()
+    }
 
-    if (!email || !password) {
+    const rate = checkRateLimit(req, 10, 60 * 1000, 'auth-login')
+    if (!rate.allowed) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: 'Too many login attempts. Please wait 1 minute before trying again.' },
+        { status: 429 }
+      )
+    }
+
+    const body = await req.json()
+    const parsed = loginSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0].message },
         { status: 400 }
       )
     }
+
+    const { email, password } = parsed.data
 
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase().trim() },

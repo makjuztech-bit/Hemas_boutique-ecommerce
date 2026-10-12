@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Shield, Lock, Mail, ArrowRight, ArrowLeft, KeyRound } from 'lucide-react'
 
-export default function AdminLoginPage() {
+function AdminLoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const hasUnauthorizedError = searchParams.get('error') === 'unauthorized'
@@ -60,93 +60,97 @@ export default function AdminLoginPage() {
         </p>
       </div>
 
-      <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-zinc-900/90 backdrop-blur-md py-8 px-6 shadow-2xl rounded-2xl border border-zinc-800 sm:px-10">
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-zinc-900 border border-zinc-800 py-8 px-6 shadow-2xl rounded-2xl sm:px-10">
           {error && (
             <div className="mb-4 p-3 rounded-lg bg-red-950/60 border border-red-800 text-red-300 text-xs flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-red-500"></span>
+              <span className="w-2 h-2 rounded-full bg-red-400"></span>
               {error}
             </div>
           )}
 
           <form onSubmit={handleAdminLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1">
-                Admin Email
+              <label className="block text-xs font-semibold text-zinc-300 mb-1">
+                Admin Staff Email
               </label>
-              <div className="relative rounded-lg shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
-                  <Mail className="h-4 w-4" />
-                </div>
+              <div className="relative">
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@hemasboutique.com"
-                  className="block w-full pl-10 pr-3 py-2.5 border border-zinc-700 rounded-xl text-sm bg-zinc-800/80 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-white text-xs placeholder-zinc-600 focus:outline-none focus:border-amber-500"
                 />
+                <Mail className="w-4 h-4 text-zinc-500 absolute left-3 top-3" />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1">
-                Password
+              <label className="block text-xs font-semibold text-zinc-300 mb-1">
+                Security Password
               </label>
-              <div className="relative rounded-lg shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
-                  <Lock className="h-4 w-4" />
-                </div>
+              <div className="relative">
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="block w-full pl-10 pr-3 py-2.5 border border-zinc-700 rounded-xl text-sm bg-zinc-800/80 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  placeholder="••••••••••••"
+                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-white text-xs placeholder-zinc-600 focus:outline-none focus:border-amber-500"
                 />
+                <Lock className="w-4 h-4 text-zinc-500 absolute left-3 top-3" />
               </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-black bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 disabled:opacity-50 transition-all cursor-pointer shadow-md"
+              className="w-full mt-2 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs text-black bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 shadow-md shadow-amber-500/10 disabled:opacity-50 transition-all cursor-pointer"
             >
               {loading ? (
                 <span>Authenticating Admin...</span>
               ) : (
                 <>
-                  <span>Enter Admin Dashboard</span>
+                  <span>Unlock Admin Operations</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
           </form>
 
-          {/* Fill Admin Demo credentials */}
+          {/* Quick Demo Credentials */}
           <div className="mt-6 pt-5 border-t border-zinc-800">
             <button
               type="button"
               onClick={fillDemoAdmin}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-medium text-amber-300 bg-amber-950/40 hover:bg-amber-950/70 rounded-lg border border-amber-800/50 transition-colors"
+              className="w-full py-2 px-3 rounded-lg border border-zinc-800 bg-zinc-950/60 hover:bg-zinc-800 text-[11px] font-medium text-amber-400 flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
-              <KeyRound className="w-3.5 h-3.5 text-amber-400" />
-              Fill Super Admin Credentials (Hema Admin)
+              <KeyRound className="w-3.5 h-3.5" />
+              <span>Fill Super Admin Credentials</span>
             </button>
           </div>
 
-          <div className="mt-5 text-center">
+          <div className="mt-4 text-center">
             <Link
-              href="/login"
-              className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors"
+              href="/"
+              className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
             >
-              <ArrowLeft className="w-3 h-3" />
-              Back to Customer Store
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Return to Public Boutique</span>
             </Link>
           </div>
         </div>
       </div>
     </div>
+  )
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-zinc-950 flex items-center justify-center text-xs text-zinc-500">Loading admin portal...</div>}>
+      <AdminLoginForm />
+    </Suspense>
   )
 }

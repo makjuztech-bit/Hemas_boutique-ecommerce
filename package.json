@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "tsx --test \"tests/**/*.test.ts\"",
+    "admin:provision": "tsx scripts/provision-admin.ts",
     "postinstall": "prisma skills sync || exit 0"
   },
   "dependencies": {

@@ -3,18 +3,42 @@ import prisma from '@/backend/db/prisma'
 import bcrypt from 'bcryptjs'
 import { Role } from '@prisma/client'
 import { createSession } from '@/backend/auth/session'
+import { checkRateLimit } from '@/lib/rateLimit'
+import { validateCsrf, csrfErrorResponse } from '@/lib/csrf'
+import { z } from 'zod'
+
+const registerSchema = z.object({
+  firstName: z.string().min(1, 'First name is required').max(50),
+  lastName: z.string().max(50).optional().default(''),
+  email: z.string().email('Please enter a valid email address'),
+  mobileNumber: z.string().min(10, 'Mobile number must be at least 10 digits').optional(),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+})
 
 export async function POST(req: NextRequest) {
   try {
-    const { firstName, lastName, email, mobileNumber, password } = await req.json()
+    if (!validateCsrf(req)) {
+      return csrfErrorResponse()
+    }
 
-    if (!email || !password || !firstName) {
+    const rate = checkRateLimit(req, 5, 60 * 1000, 'auth-register')
+    if (!rate.allowed) {
       return NextResponse.json(
-        { error: 'First name, email, and password are required' },
+        { error: 'Too many account creation attempts. Please try again later.' },
+        { status: 429 }
+      )
+    }
+
+    const body = await req.json()
+    const parsed = registerSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0].message },
         { status: 400 }
       )
     }
 
+    const { firstName, lastName, email, mobileNumber, password } = parsed.data
     const cleanEmail = email.toLowerCase().trim()
 
     const existingUser = await prisma.user.findFirst({
@@ -33,7 +57,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const passwordHash = await bcrypt.hash(password, 10)
+    const passwordHash = await bcrypt.hash(password, 12)
 
     const user = await prisma.user.create({
       data: {
@@ -62,7 +86,7 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error('Registration error:', error)
     return NextResponse.json(
-      { error: error?.message || 'Failed to register account' },
+      { error: 'Failed to complete registration. Please try again.' },
       { status: 500 }
     )
   }

@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Sparkles, Lock, Mail, ArrowRight, ShieldCheck, UserCheck } from 'lucide-react'
 
-export default function LoginPage() {
+function CustomerLoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectUrl = searchParams.get('redirect') || '/'
@@ -79,40 +79,36 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-[#5A453D] mb-1">
+              <label className="block text-xs font-semibold text-zinc-700 mb-1">
                 Email Address
               </label>
-              <div className="relative rounded-lg shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                  <Mail className="h-4 w-4 text-[#982245]" />
-                </div>
+              <div className="relative">
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.com"
-                  className="block w-full pl-10 pr-3 py-2.5 border border-[#E8DACD] rounded-xl text-sm bg-white/70 focus:outline-none focus:ring-2 focus:ring-[#982245] focus:border-transparent transition-all"
+                  placeholder="yourname@domain.com"
+                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-[#D5C2B4] text-xs focus:outline-none focus:ring-2 focus:ring-[#982245]"
                 />
+                <Mail className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-[#5A453D] mb-1">
-                Password
-              </label>
-              <div className="relative rounded-lg shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                  <Lock className="h-4 w-4 text-[#982245]" />
-                </div>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-xs font-semibold text-zinc-700">Password</label>
+              </div>
+              <div className="relative">
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="block w-full pl-10 pr-3 py-2.5 border border-[#E8DACD] rounded-xl text-sm bg-white/70 focus:outline-none focus:ring-2 focus:ring-[#982245] focus:border-transparent transition-all"
+                  placeholder="••••••••••••"
+                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-[#D5C2B4] text-xs focus:outline-none focus:ring-2 focus:ring-[#982245]"
                 />
+                <Lock className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
               </div>
             </div>
 
@@ -164,5 +160,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center text-xs text-[#7A6458]">Loading royal boutique sign-in...</div>}>
+      <CustomerLoginForm />
+    </Suspense>
   )
 }

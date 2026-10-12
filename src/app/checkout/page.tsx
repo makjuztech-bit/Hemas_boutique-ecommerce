@@ -15,12 +15,28 @@ import {
   Lock
 } from 'lucide-react'
 
+// Helper to load external scripts dynamically
+function loadScript(src: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (document.querySelector(`script[src="${src}"]`)) {
+      resolve(true)
+      return
+    }
+    const script = document.createElement('script')
+    script.src = src
+    script.onload = () => resolve(true)
+    script.onerror = () => resolve(false)
+    document.body.appendChild(script)
+  })
+}
+
 export default function CheckoutPage() {
   const router = useRouter()
   const [items, setItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [placingOrder, setPlacingOrder] = useState(false)
   const [orderSuccess, setOrderSuccess] = useState<any>(null)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const [address, setAddress] = useState({
     fullName: '',
@@ -76,25 +92,99 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault()
+    setErrorMsg(null)
     setPlacingOrder(true)
 
     try {
-      const res = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          shippingAddress: address,
-          paymentMethod,
-        }),
-      })
+      if (paymentMethod === 'COD') {
+        // Cash on delivery flow
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            shippingAddress: address,
+            paymentMethod: 'COD',
+          }),
+        })
 
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to place order')
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Failed to place order')
+        setOrderSuccess(data.order)
+      } else {
+        // Razorpay Online Payment Flow
+        const scriptLoaded = await loadScript('https://checkout.razorpay.com/v1/checkout.js')
+        if (!scriptLoaded) {
+          throw new Error('Razorpay SDK failed to load. Please check your internet connection.')
+        }
 
-      setOrderSuccess(data.order)
+        // 1. Create server-side order and razorpay order
+        const createRes = await fetch('/api/checkout/razorpay-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ shippingAddress: address }),
+        })
+
+        const orderData = await createRes.json()
+        if (!createRes.ok) throw new Error(orderData.error || 'Failed to create payment order')
+
+        // 2. Open Razorpay Checkout modal
+        const options = {
+          key: orderData.keyId,
+          amount: orderData.amount,
+          currency: orderData.currency,
+          name: "Hema's Boutique",
+          description: `Order #${orderData.orderNumber} - Artisanal Silk & Luxury Couture`,
+          order_id: orderData.razorpayOrderId,
+          prefill: {
+            name: address.fullName,
+            contact: address.phone,
+          },
+          theme: {
+            color: '#8A1A38',
+          },
+          handler: async (response: any) => {
+            try {
+              // 3. Verify signature server-side
+              const verifyRes = await fetch('/api/checkout/verify-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  orderId: orderData.orderId,
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpaySignature: response.razorpay_signature,
+                }),
+              })
+
+              const verifyData = await verifyRes.json()
+              if (!verifyRes.ok) {
+                throw new Error(verifyData.error || 'Payment signature verification failed')
+              }
+
+              setOrderSuccess(verifyData.order)
+            } catch (err: any) {
+              setErrorMsg(err.message || 'Payment verification failed')
+            } finally {
+              setPlacingOrder(false)
+            }
+          },
+          modal: {
+            ondismiss: () => {
+              setPlacingOrder(false)
+              setErrorMsg('Payment cancelled or window closed. You can retry anytime.')
+            },
+          },
+        }
+
+        const rzp = new (window as any).Razorpay(options)
+        rzp.on('payment.failed', (response: any) => {
+          setPlacingOrder(false)
+          setErrorMsg(response.error?.description || 'Payment was declined by bank')
+        })
+        rzp.open()
+      }
     } catch (err: any) {
-      alert(err.message || 'Error creating order')
-    } finally {
+      setErrorMsg(err.message || 'Error processing your checkout')
       setPlacingOrder(false)
     }
   }
@@ -129,7 +219,7 @@ export default function CheckoutPage() {
             <div className="flex justify-between">
               <span className="text-[#7A6458]">Payment Mode:</span>
               <span className="font-medium text-zinc-900">
-                {paymentMethod === 'COD' ? 'Cash on Delivery' : 'Online Payment (Prepaid)'}
+                {orderSuccess.status === 'PAID' ? 'Razorpay Online Verified' : 'Cash on Delivery (Pending)'}
               </span>
             </div>
             <div className="flex justify-between">
@@ -149,7 +239,7 @@ export default function CheckoutPage() {
               href="/"
               className="flex-1 py-3 px-4 rounded-xl text-xs font-semibold text-[#8A1A38] bg-[#FDF2F4] hover:bg-[#FCE8ED] border border-[#F5D5DC] transition-colors"
             >
-              Back to Boutique
+              Continue Exploring
             </Link>
           </div>
         </div>
@@ -158,141 +248,175 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FDFBF7] text-[#2D2421]">
+    <div className="min-h-screen bg-[#FDFBF7] text-[#2D2421]">
       <header className="bg-white border-b border-[#F0E4D8] sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
-          <Link href="/cart" className="flex items-center gap-2 group">
-            <ArrowLeft className="w-4 h-4 text-[#8A1A38] group-hover:-translate-x-1 transition-transform" />
-            <span className="text-xs font-semibold text-[#8A1A38]">Back to Bag</span>
+          <Link
+            href="/cart"
+            className="flex items-center gap-2 text-xs font-medium text-[#7A6458] hover:text-[#3B1522] transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Return to Royal Cart</span>
           </Link>
-
-          <Link href="/" className="font-serif text-xl font-bold text-[#4A1525]">
-            Hema&apos;s Boutique
-          </Link>
-
-          <div className="flex items-center gap-1 text-xs text-zinc-500 font-medium">
-            <Lock className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Secure 256-Bit SSL</span>
+          <div className="flex items-center gap-2 font-serif text-lg font-bold text-[#3B1522]">
+            <Sparkles className="w-5 h-5 text-[#8A1A38]" />
+            <span>Hema&apos;s Boutique</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+            <Lock className="w-3.5 h-3.5" />
+            <span className="font-medium">256-Bit SSL Secured</span>
           </div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#3B1522] mb-8">
-          Express Checkout
-        </h1>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        {errorMsg && (
+          <div className="max-w-4xl mx-auto mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+              <span>{errorMsg}</span>
+            </div>
+            <button
+              onClick={() => setErrorMsg(null)}
+              className="text-xs font-bold text-red-900 underline cursor-pointer"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
-        {items.length === 0 && !loading ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-[#EADBCE] p-8">
-            <p className="text-sm text-zinc-600 mb-4">Your bag is empty.</p>
-            <Link href="/" className="text-xs font-bold text-[#8A1A38] underline">
-              Return to shopping
+        {loading ? (
+          <div className="py-24 text-center">
+            <div className="w-8 h-8 border-2 border-[#8A1A38] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-xs text-[#7A6458]">Preparing secure checkout experience...</p>
+          </div>
+        ) : items.length === 0 ? (
+          <div className="bg-white max-w-md mx-auto p-8 rounded-3xl border border-[#EADBCE] text-center">
+            <p className="text-sm font-medium text-[#3B1522]">Your shopping cart is empty</p>
+            <Link
+              href="/"
+              className="mt-4 inline-block px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#8A1A38]"
+            >
+              Explore Boutique Collection
             </Link>
           </div>
         ) : (
           <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left: Shipping & Payment Details */}
             <div className="lg:col-span-2 space-y-6">
               {/* Shipping Address */}
-              <div className="bg-white p-6 rounded-3xl border border-[#EADBCE] shadow-xs">
-                <div className="flex items-center gap-2 font-serif text-lg font-bold text-[#3B1522] mb-4">
-                  <MapPin className="w-5 h-5 text-[#8A1A38]" />
-                  <span>1. Delivery Destination</span>
+              <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#EADBCE] shadow-sm">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-2xl bg-[#FAF4EC] text-[#8A1A38] flex items-center justify-center font-bold">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="font-serif text-lg font-bold text-[#3B1522]">
+                      1. Delivery Address
+                    </h2>
+                    <p className="text-xs text-[#7A6458]">
+                      Where should we deliver your handcrafted ensemble?
+                    </p>
+                  </div>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-[#5A453D] mb-1">
-                        Full Name *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={address.fullName}
-                        onChange={(e) => setAddress({ ...address, fullName: e.target.value })}
-                        placeholder="Priya Sharma"
-                        className="w-full px-3.5 py-2.5 border border-[#E8DACD] rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#8A1A38]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-[#5A453D] mb-1">
-                        Contact Phone *
-                      </label>
-                      <input
-                        type="tel"
-                        required
-                        value={address.phone}
-                        onChange={(e) => setAddress({ ...address, phone: e.target.value })}
-                        placeholder="+91 98765 43210"
-                        className="w-full px-3.5 py-2.5 border border-[#E8DACD] rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#8A1A38]"
-                      />
-                    </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <label className="block text-zinc-700 font-semibold mb-1">Full Recipient Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={address.fullName}
+                      onChange={(e) => setAddress({ ...address, fullName: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#D5C2B4] focus:outline-none focus:ring-2 focus:ring-[#8A1A38]"
+                      placeholder="e.g. Priya Sharma"
+                    />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-[#5A453D] mb-1">
-                      Street Address &amp; Flat/House No. *
-                    </label>
+                    <label className="block text-zinc-700 font-semibold mb-1">Mobile Contact *</label>
+                    <input
+                      type="tel"
+                      required
+                      value={address.phone}
+                      onChange={(e) => setAddress({ ...address, phone: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#D5C2B4] focus:outline-none focus:ring-2 focus:ring-[#8A1A38]"
+                      placeholder="+91 98765 43210"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-zinc-700 font-semibold mb-1">Street Address &amp; House/Flat *</label>
                     <input
                       type="text"
                       required
                       value={address.street}
                       onChange={(e) => setAddress({ ...address, street: e.target.value })}
-                      placeholder="12/A, Heritage Enclave, Near Silk Weaver Colony"
-                      className="w-full px-3.5 py-2.5 border border-[#E8DACD] rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#8A1A38]"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#D5C2B4] focus:outline-none focus:ring-2 focus:ring-[#8A1A38]"
+                      placeholder="e.g. 42 Royal Palms Avenue, T. Nagar"
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-[#5A453D] mb-1">
-                        City *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={address.city}
-                        onChange={(e) => setAddress({ ...address, city: e.target.value })}
-                        placeholder="Chennai / Bangalore"
-                        className="w-full px-3.5 py-2.5 border border-[#E8DACD] rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#8A1A38]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-[#5A453D] mb-1">
-                        State *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={address.state}
-                        onChange={(e) => setAddress({ ...address, state: e.target.value })}
-                        placeholder="Tamil Nadu"
-                        className="w-full px-3.5 py-2.5 border border-[#E8DACD] rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#8A1A38]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-[#5A453D] mb-1">
-                        PIN Code *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={address.postalCode}
-                        onChange={(e) => setAddress({ ...address, postalCode: e.target.value })}
-                        placeholder="600001"
-                        className="w-full px-3.5 py-2.5 border border-[#E8DACD] rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#8A1A38]"
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-zinc-700 font-semibold mb-1">City / Town *</label>
+                    <input
+                      type="text"
+                      required
+                      value={address.city}
+                      onChange={(e) => setAddress({ ...address, city: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#D5C2B4] focus:outline-none focus:ring-2 focus:ring-[#8A1A38]"
+                      placeholder="Chennai"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-zinc-700 font-semibold mb-1">State *</label>
+                    <input
+                      type="text"
+                      required
+                      value={address.state}
+                      onChange={(e) => setAddress({ ...address, state: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#D5C2B4] focus:outline-none focus:ring-2 focus:ring-[#8A1A38]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-zinc-700 font-semibold mb-1">Postal PIN Code *</label>
+                    <input
+                      type="text"
+                      required
+                      value={address.postalCode}
+                      onChange={(e) => setAddress({ ...address, postalCode: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#D5C2B4] focus:outline-none focus:ring-2 focus:ring-[#8A1A38]"
+                      placeholder="600017"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-zinc-700 font-semibold mb-1">Country</label>
+                    <input
+                      type="text"
+                      disabled
+                      value={address.country}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#D5C2B4] bg-[#F5ECE1] text-zinc-500"
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* Payment Method */}
-              <div className="bg-white p-6 rounded-3xl border border-[#EADBCE] shadow-xs">
-                <div className="flex items-center gap-2 font-serif text-lg font-bold text-[#3B1522] mb-4">
-                  <CreditCard className="w-5 h-5 text-[#8A1A38]" />
-                  <span>2. Payment Option</span>
+              {/* Payment Method Selection */}
+              <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#EADBCE] shadow-sm">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-2xl bg-[#FAF4EC] text-[#8A1A38] flex items-center justify-center font-bold">
+                    <CreditCard className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="font-serif text-lg font-bold text-[#3B1522]">
+                      2. Payment Method
+                    </h2>
+                    <p className="text-xs text-[#7A6458]">
+                      Select your preferred payment channel
+                    </p>
+                  </div>
                 </div>
 
                 <div className="space-y-3">
@@ -314,7 +438,7 @@ export default function CheckoutPage() {
                       />
                       <div>
                         <p className="text-sm font-bold text-[#3B1522]">Cash on Delivery (COD)</p>
-                        <p className="text-xs text-[#7A6458]">Pay in cash or UPI upon package arrival</p>
+                        <p className="text-xs text-[#7A6458]">Pay upon delivery via cash or UPI to delivery agent</p>
                       </div>
                     </div>
                     <Building className="w-5 h-5 text-[#8A1A38]" />
@@ -340,7 +464,7 @@ export default function CheckoutPage() {
                         <p className="text-sm font-bold text-[#3B1522]">
                           Razorpay / Cards / UPI / NetBanking
                         </p>
-                        <p className="text-xs text-[#7A6458]">Instant online verification (Test Sandbox)</p>
+                        <p className="text-xs text-[#7A6458]">Official Razorpay Gateway (Instant verification &amp; order confirmation)</p>
                       </div>
                     </div>
                     <Sparkles className="w-5 h-5 text-[#8A1A38]" />
@@ -403,11 +527,11 @@ export default function CheckoutPage() {
                 className="w-full mt-6 flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-[#8A1A38] to-[#A8284C] hover:opacity-95 shadow-lg shadow-[#8A1A38]/20 disabled:opacity-50 transition-all cursor-pointer"
               >
                 {placingOrder ? (
-                  <span>Reserving Ensemble...</span>
+                  <span>Connecting to Gateway...</span>
                 ) : (
                   <>
                     <ShieldCheck className="w-4 h-4" />
-                    <span>Confirm &amp; Place Order</span>
+                    <span>{paymentMethod === 'ONLINE' ? 'Proceed with Razorpay' : 'Confirm Cash on Delivery'}</span>
                   </>
                 )}
               </button>
