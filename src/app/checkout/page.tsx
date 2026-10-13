@@ -16,27 +16,52 @@ import {
   Lock
 } from 'lucide-react'
 
-// Helper to load external scripts dynamically
-function loadScript(src: string): Promise<boolean> {
+// Resilient helper to guarantee Razorpay checkout SDK is loaded
+function ensureRazorpayLoaded(): Promise<boolean> {
   return new Promise((resolve) => {
-    if (typeof window !== 'undefined' && (window as any).Razorpay) {
+    if (typeof window === 'undefined') {
+      resolve(false)
+      return
+    }
+
+    if ((window as any).Razorpay) {
       resolve(true)
       return
     }
-    const existing = document.querySelector(`script[src="${src}"]`)
+
+    const scriptId = 'razorpay-checkout-sdk'
+    const existing = document.getElementById(scriptId) as HTMLScriptElement | null
+
     if (existing) {
-      if ((window as any).Razorpay) {
-        resolve(true)
-      } else {
-        existing.addEventListener('load', () => resolve(true))
-        existing.addEventListener('error', () => resolve(false))
-      }
+      let attempts = 0
+      const poll = setInterval(() => {
+        if ((window as any).Razorpay) {
+          clearInterval(poll)
+          resolve(true)
+        } else if (attempts++ > 60) {
+          clearInterval(poll)
+          resolve(false)
+        }
+      }, 50)
       return
     }
+
     const script = document.createElement('script')
-    script.src = src
+    script.id = scriptId
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
     script.async = true
-    script.onload = () => resolve(true)
+    script.onload = () => {
+      let attempts = 0
+      const poll = setInterval(() => {
+        if ((window as any).Razorpay) {
+          clearInterval(poll)
+          resolve(true)
+        } else if (attempts++ > 40) {
+          clearInterval(poll)
+          resolve(!!(window as any).Razorpay)
+        }
+      }, 50)
+    }
     script.onerror = () => resolve(false)
     document.body.appendChild(script)
   })
@@ -60,9 +85,13 @@ export default function CheckoutPage() {
     country: 'India',
   })
 
-  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'ONLINE'>('COD')
+  const [userEmail, setUserEmail] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'ONLINE'>('ONLINE')
 
   useEffect(() => {
+    // Preload Razorpay checkout SDK in the background immediately
+    ensureRazorpayLoaded()
+
     async function loadData() {
       try {
         const [cartRes, meRes] = await Promise.all([
@@ -74,6 +103,7 @@ export default function CheckoutPage() {
 
         if (cartData.items) setItems(cartData.items)
         if (meData.user) {
+          setUserEmail(meData.user.email || '')
           setAddress((prev) => ({
             ...prev,
             fullName: `${meData.user.firstName || ''} ${meData.user.lastName || ''}`.trim(),
@@ -105,6 +135,29 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMsg(null)
+
+    // 1. Client-side Delivery Address Validation
+    if (!address.fullName.trim()) {
+      setErrorMsg('Please enter the recipient full name.')
+      return
+    }
+    if (!address.phone.trim()) {
+      setErrorMsg('Please enter a valid mobile contact number for delivery updates.')
+      return
+    }
+    if (!address.street.trim()) {
+      setErrorMsg('Please enter the delivery street address / flat details.')
+      return
+    }
+    if (!address.city.trim()) {
+      setErrorMsg('Please enter the delivery City / Town.')
+      return
+    }
+    if (!address.postalCode.trim()) {
+      setErrorMsg('Please enter the 6-digit postal PIN code.')
+      return
+    }
+
     setPlacingOrder(true)
 
     try {
@@ -124,9 +177,9 @@ export default function CheckoutPage() {
         setOrderSuccess(data.order)
       } else {
         // Razorpay Online Payment Flow
-        const scriptLoaded = await loadScript('https://checkout.razorpay.com/v1/checkout.js')
+        const scriptLoaded = await ensureRazorpayLoaded()
         if (!scriptLoaded) {
-          throw new Error('Razorpay SDK failed to load. Please check your internet connection.')
+          throw new Error('Razorpay payment gateway failed to load. Please check your internet connection or disable ad-blockers.')
         }
 
         // 1. Create server-side order and razorpay order
@@ -137,7 +190,7 @@ export default function CheckoutPage() {
         })
 
         const orderData = await createRes.json()
-        if (!createRes.ok) throw new Error(orderData.error || 'Failed to create payment order')
+        if (!createRes.ok) throw new Error(orderData.error || 'Failed to initialize payment gateway order')
 
         // 2. Open Razorpay Checkout modal
         const cleanPhone = address.phone ? address.phone.replace(/[^0-9]/g, '') : ''
@@ -150,6 +203,7 @@ export default function CheckoutPage() {
           order_id: orderData.razorpayOrderId,
           prefill: {
             name: address.fullName,
+            email: userEmail || undefined,
             contact: cleanPhone,
           },
           theme: {
@@ -157,6 +211,7 @@ export default function CheckoutPage() {
           },
           handler: async (response: any) => {
             try {
+              setPlacingOrder(true)
               // 3. Verify signature server-side
               const verifyRes = await fetch('/api/checkout/verify-payment', {
                 method: 'POST',
@@ -184,7 +239,7 @@ export default function CheckoutPage() {
           modal: {
             ondismiss: () => {
               setPlacingOrder(false)
-              setErrorMsg('Payment cancelled or window closed. You can retry anytime.')
+              setErrorMsg('Payment modal closed. You can retry whenever you are ready.')
             },
           },
         }
@@ -192,11 +247,14 @@ export default function CheckoutPage() {
         const rzp = new (window as any).Razorpay(options)
         rzp.on('payment.failed', (response: any) => {
           setPlacingOrder(false)
-          setErrorMsg(response.error?.description || 'Payment was declined by bank')
+          setErrorMsg(response.error?.description || 'Payment was declined by issuing bank')
         })
         rzp.open()
+        // Modal is now open, return button to ready state
+        setPlacingOrder(false)
       }
     } catch (err: any) {
+      console.error('Checkout error:', err)
       setErrorMsg(err.message || 'Error processing your checkout')
       setPlacingOrder(false)
     }
@@ -413,6 +471,13 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
+              {errorMsg && (
+                <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2.5">
+                  <span className="w-2 h-2 rounded-full bg-red-500 shrink-0"></span>
+                  <span className="font-medium">{errorMsg}</span>
+                </div>
+              )}
+
               {/* Payment Method Selection */}
               <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#EADBCE] shadow-sm">
                 <div className="flex items-center gap-3 mb-6">
@@ -531,8 +596,16 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
+              {errorMsg && (
+                <div className="mt-4 p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5">
+                  <span className="w-2 h-2 rounded-full bg-red-500 shrink-0 mt-1"></span>
+                  <span className="leading-relaxed">{errorMsg}</span>
+                </div>
+              )}
+
               <button
-                type="submit"
+                type="button"
+                onClick={handlePlaceOrder}
                 disabled={placingOrder}
                 className="w-full mt-6 flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-[#8A1A38] to-[#A8284C] hover:opacity-95 shadow-lg shadow-[#8A1A38]/20 disabled:opacity-50 transition-all cursor-pointer"
               >
