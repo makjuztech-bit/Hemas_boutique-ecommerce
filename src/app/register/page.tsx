@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import BrandLogo from '@/components/BrandLogo'
 import { Sparkles, Lock, Mail, User, Phone, ArrowRight } from 'lucide-react'
 
 export default function RegisterPage() {
@@ -47,14 +48,9 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex flex-col justify-center bg-gradient-to-br from-[#FAF7F2] via-[#FFF9F5] to-[#F5EFE6] text-[#2C2420] px-4 py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-[#982245] to-[#C94A6E] text-white shadow-lg mb-3">
-          <Sparkles className="w-7 h-7 animate-pulse" />
-        </div>
-        <h1 className="font-serif text-3xl font-bold text-[#4A1525]">
-          Join Hema&apos;s Boutique
-        </h1>
-        <p className="mt-1 text-xs text-[#7A6458]">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center flex flex-col items-center">
+        <BrandLogo size="lg" variant="light" href="/" subtitle="Women's Tex Valley" />
+        <p className="mt-3 text-xs text-[#7A6458]">
           Create your account for personalized shopping, bridal consultations &amp; express checkout
         </p>
       </div>

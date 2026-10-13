@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import BrandLogo from '@/components/BrandLogo'
 import {
   ShieldCheck,
   ArrowLeft,
@@ -258,10 +259,7 @@ export default function CheckoutPage() {
             <ArrowLeft className="w-4 h-4" />
             <span>Return to Royal Cart</span>
           </Link>
-          <div className="flex items-center gap-2 font-serif text-lg font-bold text-[#3B1522]">
-            <Sparkles className="w-5 h-5 text-[#8A1A38]" />
-            <span>Hema&apos;s Boutique</span>
-          </div>
+          <BrandLogo size="sm" variant="light" href="/" subtitle="Women's Tex Valley" />
           <div className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
             <Lock className="w-3.5 h-3.5" />
             <span className="font-medium">256-Bit SSL Secured</span>

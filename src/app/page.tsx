@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import BrandLogo from '@/components/BrandLogo'
 import {
   ShoppingBag,
   User,
@@ -178,19 +179,7 @@ export default function StorefrontPage() {
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#F0E4D8] shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
           {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#8A1A38] to-[#C94A6E] flex items-center justify-center text-white shadow-md">
-              <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-            </div>
-            <div>
-              <span className="font-serif text-2xl font-bold tracking-tight text-[#4A1525] block leading-none">
-                Hema&apos;s Boutique
-              </span>
-              <span className="text-[10px] tracking-widest uppercase font-semibold text-[#982245]">
-                Haute Couture &amp; Sarees
-              </span>
-            </div>
-          </Link>
+          <BrandLogo size="md" variant="light" href="/" subtitle="Women's Tex Valley" />
 
           {/* Search bar */}
           <div className="hidden md:flex flex-1 max-w-md mx-6">
@@ -554,12 +543,11 @@ export default function StorefrontPage() {
       <footer className="bg-[#2D1B22] text-[#E8D9CE] py-12 px-4 sm:px-6 lg:px-8 mt-16 border-t border-[#422933]">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-5 h-5 text-amber-400" />
-              <h3 className="font-serif text-xl font-bold text-white">Hema&apos;s Boutique</h3>
+            <div className="mb-3">
+              <BrandLogo size="md" variant="dark" href="/" subtitle="Women's Tex Valley" />
             </div>
             <p className="text-xs text-[#C9B4A7] leading-relaxed">
-              Celebrating Indian handloom craftsmanship, royal wedding couture, and bespoke sarees since 2012.
+              Celebrating Indian handloom craftsmanship, royal wedding couture, and bespoke sarees. Authentic Kanchipuram silk and bridal ensembles.
             </p>
           </div>
 

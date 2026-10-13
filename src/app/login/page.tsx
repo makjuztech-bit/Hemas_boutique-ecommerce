@@ -3,6 +3,7 @@
 import React, { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
+import BrandLogo from '@/components/BrandLogo'
 import { Sparkles, Lock, Mail, ArrowRight, ShieldCheck, UserCheck } from 'lucide-react'
 
 function CustomerLoginForm() {
@@ -49,14 +50,9 @@ function CustomerLoginForm() {
 
   return (
     <div className="min-h-screen flex flex-col justify-center bg-gradient-to-br from-[#FAF7F2] via-[#FFF9F5] to-[#F5EFE6] text-[#2C2420] px-4 py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-[#982245] to-[#C94A6E] text-white shadow-lg mb-4">
-          <Sparkles className="w-8 h-8 animate-pulse" />
-        </div>
-        <h1 className="font-serif text-4xl tracking-tight font-bold text-[#4A1525]">
-          Hema&apos;s Boutique
-        </h1>
-        <p className="mt-2 text-sm text-[#7A6458]">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center flex flex-col items-center">
+        <BrandLogo size="lg" variant="light" href="/" subtitle="Women's Tex Valley" />
+        <p className="mt-3 text-xs text-[#7A6458]">
           Exclusive Handcrafted Sarees, Bridal Lehengas &amp; Ethnic Couture
         </p>
       </div>

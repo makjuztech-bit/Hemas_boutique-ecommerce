@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import BrandLogo from '@/components/BrandLogo'
 import {
   LayoutDashboard,
   Package,
@@ -64,12 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="min-h-screen flex bg-zinc-950 text-zinc-100">
       {/* Mobile Top Bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-zinc-900 border-b border-zinc-800 px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-amber-500 text-black flex items-center justify-center font-bold text-sm">
-            HB
-          </div>
-          <span className="font-bold text-sm text-white">Boutique Admin</span>
-        </div>
+        <BrandLogo size="sm" variant="dark" href="/admin" subtitle="Admin Control" />
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="p-2 text-zinc-400 hover:text-white cursor-pointer"
@@ -86,16 +82,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       >
         <div>
           {/* Brand */}
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-400 text-black flex items-center justify-center font-bold shadow-lg shadow-amber-500/20">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="font-bold text-sm text-white tracking-wide">Hema&apos;s Boutique</h2>
-              <span className="text-[10px] uppercase tracking-widest text-amber-400 font-semibold">
-                Control Hub
-              </span>
-            </div>
+          <div className="mb-8">
+            <BrandLogo size="md" variant="dark" href="/admin" subtitle="Control Hub" />
           </div>
 
           {/* Navigation Links */}

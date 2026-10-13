@@ -3,6 +3,7 @@
 import React, { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
+import BrandLogo from '@/components/BrandLogo'
 import { Shield, Lock, Mail, ArrowRight, ArrowLeft, KeyRound } from 'lucide-react'
 
 function AdminLoginForm() {
@@ -48,14 +49,9 @@ function AdminLoginForm() {
 
   return (
     <div className="min-h-screen flex flex-col justify-center bg-zinc-950 text-zinc-100 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-600 to-amber-400 text-black shadow-lg mb-3">
-          <Shield className="w-7 h-7" />
-        </div>
-        <h1 className="text-2xl font-bold tracking-tight text-white">
-          Boutique Admin Portal
-        </h1>
-        <p className="mt-1 text-xs text-zinc-400">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center flex flex-col items-center">
+        <BrandLogo size="lg" variant="dark" href="/admin" subtitle="Control Portal" />
+        <p className="mt-3 text-xs text-zinc-400">
           Management &amp; Analytics Dashboard for Store Operations
         </p>
       </div>
