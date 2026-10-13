@@ -19,12 +19,23 @@ import {
 // Helper to load external scripts dynamically
 function loadScript(src: string): Promise<boolean> {
   return new Promise((resolve) => {
-    if (document.querySelector(`script[src="${src}"]`)) {
+    if (typeof window !== 'undefined' && (window as any).Razorpay) {
       resolve(true)
+      return
+    }
+    const existing = document.querySelector(`script[src="${src}"]`)
+    if (existing) {
+      if ((window as any).Razorpay) {
+        resolve(true)
+      } else {
+        existing.addEventListener('load', () => resolve(true))
+        existing.addEventListener('error', () => resolve(false))
+      }
       return
     }
     const script = document.createElement('script')
     script.src = src
+    script.async = true
     script.onload = () => resolve(true)
     script.onerror = () => resolve(false)
     document.body.appendChild(script)
@@ -129,16 +140,17 @@ export default function CheckoutPage() {
         if (!createRes.ok) throw new Error(orderData.error || 'Failed to create payment order')
 
         // 2. Open Razorpay Checkout modal
+        const cleanPhone = address.phone ? address.phone.replace(/[^0-9]/g, '') : ''
         const options = {
-          key: orderData.keyId,
+          key: orderData.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_TmxBXynfsXvC1j',
           amount: orderData.amount,
-          currency: orderData.currency,
+          currency: orderData.currency || 'INR',
           name: "Hema's Boutique",
           description: `Order #${orderData.orderNumber} - Artisanal Silk & Luxury Couture`,
           order_id: orderData.razorpayOrderId,
           prefill: {
             name: address.fullName,
-            contact: address.phone,
+            contact: cleanPhone,
           },
           theme: {
             color: '#8A1A38',

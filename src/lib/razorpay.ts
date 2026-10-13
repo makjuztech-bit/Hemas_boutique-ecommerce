@@ -31,11 +31,14 @@ export function verifyRazorpaySignature(
       .update(`${orderId}|${paymentId}`)
       .digest('hex')
 
+    const sigBuf = Buffer.from(signature, 'utf-8')
+    const expBuf = Buffer.from(expectedSignature, 'utf-8')
+    if (sigBuf.length !== expBuf.length) {
+      return false
+    }
+
     // Constant-time comparison to prevent timing attacks
-    return crypto.timingSafeEqual(
-      Buffer.from(signature, 'utf-8'),
-      Buffer.from(expectedSignature, 'utf-8')
-    )
+    return crypto.timingSafeEqual(sigBuf, expBuf)
   } catch {
     return false
   }
@@ -56,10 +59,13 @@ export function verifyWebhookSignature(
       .update(rawBody)
       .digest('hex')
 
-    return crypto.timingSafeEqual(
-      Buffer.from(signature, 'utf-8'),
-      Buffer.from(expectedSignature, 'utf-8')
-    )
+    const sigBuf = Buffer.from(signature, 'utf-8')
+    const expBuf = Buffer.from(expectedSignature, 'utf-8')
+    if (sigBuf.length !== expBuf.length) {
+      return false
+    }
+
+    return crypto.timingSafeEqual(sigBuf, expBuf)
   } catch {
     return false
   }

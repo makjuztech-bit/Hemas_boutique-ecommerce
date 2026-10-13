@@ -37,8 +37,7 @@ export default function RegisterPage() {
       }
 
       // Successful registration -> session created, redirect to shopping store
-      router.push('/')
-      router.refresh()
+      window.location.href = '/'
     } catch (err: any) {
       setError(err.message || 'Registration failed')
     } finally {

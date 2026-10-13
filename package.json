@@ -9,7 +9,7 @@
     "lint": "eslint",
     "test": "tsx --test \"tests/**/*.test.ts\"",
     "admin:provision": "tsx scripts/provision-admin.ts",
-    "postinstall": "prisma skills sync || exit 0"
+    "postinstall": "prisma generate || exit 0"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -37,7 +37,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
+    "eslint": "^8.57.1",
     "eslint-config-next": "^14.2.35",
     "prisma": "^5.22.0",
     "tailwindcss": "^4",
