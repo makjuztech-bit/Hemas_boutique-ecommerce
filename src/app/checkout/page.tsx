@@ -193,7 +193,8 @@ export default function CheckoutPage() {
         if (!createRes.ok) throw new Error(orderData.error || 'Failed to initialize payment gateway order')
 
         // 2. Open Razorpay Checkout modal
-        const cleanPhone = address.phone ? address.phone.replace(/[^0-9]/g, '') : ''
+        const rawPhone = address.phone ? address.phone.replace(/[^0-9]/g, '') : ''
+        const cleanPhone = rawPhone.length >= 10 ? rawPhone.slice(-10) : (rawPhone || undefined)
         const options = {
           key: orderData.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_TmxBXynfsXvC1j',
           amount: orderData.amount,
@@ -202,8 +203,8 @@ export default function CheckoutPage() {
           description: `Order #${orderData.orderNumber} - Artisanal Silk & Luxury Couture`,
           order_id: orderData.razorpayOrderId,
           prefill: {
-            name: address.fullName,
-            email: userEmail || undefined,
+            name: address.fullName.trim() || undefined,
+            email: userEmail?.trim() || undefined,
             contact: cleanPhone,
           },
           theme: {
@@ -544,6 +545,35 @@ export default function CheckoutPage() {
                     </div>
                     <Sparkles className="w-5 h-5 text-[#8A1A38]" />
                   </label>
+
+                  {paymentMethod === 'ONLINE' && (
+                    <div className="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200/90 text-[11px] text-amber-900 space-y-1.5 animate-fadeIn">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold flex items-center gap-1.5 text-amber-900 uppercase tracking-wider text-[10px]">
+                          <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                          Razorpay Test Mode Active
+                        </span>
+                        <span className="text-[10px] text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-md font-mono">
+                          rzp_test
+                        </span>
+                      </div>
+                      <p className="text-amber-800 leading-relaxed">
+                        Do not use real banking apps or real debit cards (real payments fail under test keys). Use simulated test credentials:
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 font-mono text-[10px]">
+                        <div className="bg-white/90 p-2 rounded-xl border border-amber-200/60 shadow-xs">
+                          <p className="font-bold text-amber-900">💳 Test Card:</p>
+                          <p className="text-zinc-700">4111 1111 1111 1111</p>
+                          <p className="text-[9px] text-zinc-500">Exp: Any (e.g. 12/28) | CVV: 123</p>
+                        </div>
+                        <div className="bg-white/90 p-2 rounded-xl border border-amber-200/60 shadow-xs">
+                          <p className="font-bold text-amber-900">⚡ Test UPI / NetBanking:</p>
+                          <p className="text-zinc-700">success@razorpay</p>
+                          <p className="text-[9px] text-zinc-500">On simulation screen: Click &quot;Success&quot;</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
