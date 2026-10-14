@@ -16,15 +16,17 @@ import {
 type OrderItem = {
   id: string
   quantity: number
-  unitPrice: number
-  totalPrice: number
-  variant: {
+  price: number
+  salePrice: number | null
+  productName: string
+  sku: string
+  variant?: {
     sku: string
-    product: {
+    product?: {
       name: string
-      media: Array<{ mediaAsset: { secureUrl: string } }>
+      media?: Array<{ mediaAsset?: { secureUrl?: string } }>
     }
-  }
+  } | null
 }
 
 type Order = {
@@ -179,26 +181,30 @@ export default function CustomerOrdersPage() {
 
                   <div className="p-4 sm:p-6 space-y-4">
                     {order.items.map((item) => {
+                      const unitPrice = item.salePrice || item.price || 0
+                      const itemTotal = unitPrice * item.quantity
+                      const displayName = item.variant?.product?.name || item.productName || 'Boutique Ensemble'
+                      const displaySku = item.variant?.sku || item.sku || ''
                       const img =
-                        item.variant.product.media[0]?.mediaAsset?.secureUrl ||
+                        item.variant?.product?.media?.[0]?.mediaAsset?.secureUrl ||
                         'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'
 
                       return (
                         <div key={item.id} className="flex items-center gap-4">
                           <img
                             src={img}
-                            alt={item.variant.product.name}
+                            alt={displayName}
                             className="w-16 h-20 object-cover rounded-xl bg-[#F5EFE8]"
                           />
                           <div className="flex-1 min-w-0">
                             <h4 className="font-serif text-sm font-bold text-[#3B1522] truncate">
-                              {item.variant.product.name}
+                              {displayName}
                             </h4>
                             <p className="text-[11px] text-zinc-500 font-mono mt-0.5">
-                              SKU: {item.variant.sku}
+                              SKU: {displaySku}
                             </p>
                             <p className="text-xs text-[#8A1A38] font-semibold mt-1">
-                              Qty: {item.quantity} × {formatPrice(item.unitPrice)} = {formatPrice(item.totalPrice)}
+                              Qty: {item.quantity} × {formatPrice(unitPrice)} = {formatPrice(itemTotal)}
                             </p>
                           </div>
                         </div>

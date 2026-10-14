@@ -16,14 +16,16 @@ import {
 type OrderItem = {
   id: string
   quantity: number
-  unitPrice: number
-  totalPrice: number
-  variant: {
+  price: number
+  salePrice: number | null
+  productName: string
+  sku: string
+  variant?: {
     sku: string
-    product: {
+    product?: {
       name: string
     }
-  }
+  } | null
 }
 
 type Order = {
@@ -174,16 +176,23 @@ export default function AdminOrdersPage() {
                   <div className="space-y-2 bg-zinc-950/40 p-4 rounded-xl border border-zinc-800/60">
                     <p className="font-semibold text-zinc-300">Ensemble Items:</p>
                     <div className="space-y-1 text-zinc-400">
-                      {order.items.map((item) => (
-                        <div key={item.id} className="flex justify-between">
-                          <span>
-                            {item.variant.product.name} (SKU: {item.variant.sku}) × {item.quantity}
-                          </span>
-                          <span className="font-mono text-zinc-300">
-                            {formatPrice(item.totalPrice)}
-                          </span>
-                        </div>
-                      ))}
+                      {order.items.map((item) => {
+                        const unitPrice = item.salePrice || item.price || 0
+                        const itemTotal = unitPrice * item.quantity
+                        const displayName = item.variant?.product?.name || item.productName || 'Ensemble Item'
+                        const displaySku = item.variant?.sku || item.sku || ''
+
+                        return (
+                          <div key={item.id} className="flex justify-between">
+                            <span>
+                              {displayName} {displaySku ? `(SKU: ${displaySku})` : ''} × {item.quantity}
+                            </span>
+                            <span className="font-mono text-zinc-300">
+                              {formatPrice(itemTotal)}
+                            </span>
+                          </div>
+                        )
+                      })}
                     </div>
                   </div>
                 </div>

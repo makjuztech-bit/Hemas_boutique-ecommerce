@@ -11,7 +11,11 @@ const registerSchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(50),
   lastName: z.string().max(50).optional().default(''),
   email: z.string().email('Please enter a valid email address'),
-  mobileNumber: z.string().min(10, 'Mobile number must be at least 10 digits').optional(),
+  mobileNumber: z
+    .preprocess(
+      (val) => (typeof val === 'string' && val.trim() === '' ? undefined : val),
+      z.string().min(10, 'Mobile number must be at least 10 digits').optional()
+    ),
   password: z.string().min(8, 'Password must be at least 8 characters'),
 })
 

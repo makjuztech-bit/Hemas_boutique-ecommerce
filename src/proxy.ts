@@ -3,9 +3,12 @@ import { decrypt } from '@/backend/auth/session'
 
 // Public routes that anyone can access without logging in
 const publicCustomerRoutes = [
+  '/',
   '/login',
   '/register',
   '/api/auth',
+  '/api/products',
+  '/api/categories',
   '/api/health',
   '/api/webhooks',
   '/robots.txt',
@@ -37,7 +40,9 @@ export default async function middleware(req: NextRequest) {
   const session = req.cookies.get('session')?.value
   const payload = await decrypt(session)
 
-  const isPublicCustomerRoute = publicCustomerRoutes.some((route) => path.startsWith(route))
+  const isPublicCustomerRoute =
+    path === '/' ||
+    publicCustomerRoutes.some((route) => route !== '/' && path.startsWith(route))
   const isPublicAdminRoute = publicAdminRoutes.some((route) => path.startsWith(route))
   const isAdminRoute = path.startsWith('/admin')
 

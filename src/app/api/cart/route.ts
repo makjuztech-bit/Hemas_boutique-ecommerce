@@ -68,9 +68,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Product variant not found' }, { status: 404 })
     }
 
-    if (variant.stockQuantity < parsedQty) {
+    const existingCartItem = await prisma.cartItem.findUnique({
+      where: {
+        userId_variantId: {
+          userId: session.userId,
+          variantId,
+        },
+      },
+    })
+
+    const currentQtyInCart = existingCartItem?.quantity || 0
+    const totalRequested = currentQtyInCart + parsedQty
+
+    if (variant.stockQuantity < totalRequested) {
+      const remainingAvailable = Math.max(0, variant.stockQuantity - currentQtyInCart)
       return NextResponse.json(
-        { error: `Only ${variant.stockQuantity} items in stock.` },
+        {
+          error:
+            remainingAvailable > 0
+              ? `You already have ${currentQtyInCart} in your bag. Only ${remainingAvailable} more available.`
+              : `Cannot add more. You already have all available stock (${variant.stockQuantity}) in your bag.`,
+        },
         { status: 400 }
       )
     }
@@ -120,12 +138,28 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ success: true, deleted: true })
     }
 
-    const updated = await prisma.cartItem.updateMany({
+    const existingItem = await prisma.cartItem.findFirst({
       where: { id, userId: session.userId },
+      include: { variant: true },
+    })
+
+    if (!existingItem) {
+      return NextResponse.json({ error: 'Cart item not found' }, { status: 404 })
+    }
+
+    if (existingItem.variant.stockQuantity < parsedQty) {
+      return NextResponse.json(
+        { error: `Only ${existingItem.variant.stockQuantity} items in stock.` },
+        { status: 400 }
+      )
+    }
+
+    const updated = await prisma.cartItem.update({
+      where: { id: existingItem.id },
       data: { quantity: Math.min(20, parsedQty) },
     })
 
-    return NextResponse.json({ success: true, count: updated.count })
+    return NextResponse.json({ success: true, count: 1 })
   } catch (error: any) {
     console.error('Update cart item error:', error)
     return NextResponse.json(
