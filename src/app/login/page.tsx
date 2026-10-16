@@ -106,8 +106,32 @@ function CustomerLoginForm() {
         setLoading(false)
         return
       } catch (fbErr: any) {
-        console.warn('[FIREBASE_PHONE] Firebase client attempt note:', fbErr?.message || fbErr)
-        // If Firebase phone is not yet configured or fails, fallback seamlessly to backend OTP service
+        console.error('[FIREBASE_PHONE] Error:', fbErr)
+        if ((window as any).recaptchaVerifier) {
+          try {
+            (window as any).recaptchaVerifier.clear()
+          } catch {}
+          (window as any).recaptchaVerifier = null
+        }
+
+        let friendlyMsg = fbErr.message || 'Firebase SMS request failed'
+        if (fbErr.code === 'auth/billing-not-enabled' || fbErr.message?.includes('BILLING_NOT_ENABLED')) {
+          friendlyMsg = 'Google Firebase requires a linked Cloud Billing account (Pay-As-You-Go Blaze Plan) to deliver carrier SMS. Alternatively, add your phone number under "Phone numbers for testing" in Firebase Console for free instant testing.'
+        } else if (fbErr.code === 'auth/operation-not-allowed' || fbErr.code === 'auth/admin-restricted-operation') {
+          friendlyMsg = 'Phone authentication is disabled in Firebase. Go to Firebase Console -> Authentication -> Sign-in method -> Enable Phone.'
+        } else if (fbErr.code === 'auth/unauthorized-domain') {
+          friendlyMsg = 'This domain is not authorized in Firebase. Add your URL in Firebase Console -> Authentication -> Settings -> Authorized Domains.'
+        } else if (fbErr.code === 'auth/quota-exceeded') {
+          friendlyMsg = 'SMS quota exceeded for this Firebase project. Upgrade to Blaze plan or use test phone numbers.'
+        } else if (fbErr.code === 'auth/captcha-check-failed') {
+          friendlyMsg = 'Google reCAPTCHA verification failed. Please refresh the page and try again.'
+        } else if (fbErr.code === 'auth/invalid-phone-number') {
+          friendlyMsg = 'Please enter a valid 10-digit mobile phone number.'
+        }
+
+        setError(friendlyMsg)
+        setLoading(false)
+        return
       }
     }
 
