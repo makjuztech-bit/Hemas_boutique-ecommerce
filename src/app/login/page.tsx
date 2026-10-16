@@ -68,6 +68,9 @@ function CustomerLoginForm() {
     }
   }
 
+  // Firebase Phone Auth confirmation result
+  const [confirmationResult, setConfirmationResult] = useState<any>(null)
+
   // Send OTP for OTP-login or Password Reset
   const handleSendOtp = async () => {
     if (!otpTarget.trim()) {
@@ -79,6 +82,36 @@ function CustomerLoginForm() {
     setSuccessMsg('')
     setLoading(true)
 
+    // Try Google Firebase Phone Auth for MOBILE
+    if (targetType === 'MOBILE' && mode === 'OTP') {
+      try {
+        const { auth, RecaptchaVerifier, signInWithPhoneNumber } = await import('@/lib/firebase/client')
+        
+        // Format to E.164 (+91 for 10-digit Indian numbers)
+        const cleanDigits = otpTarget.trim().replace(/[^0-9]/g, '')
+        const formattedPhone = cleanDigits.length === 10 ? `+91${cleanDigits}` : otpTarget.startsWith('+') ? otpTarget.trim() : `+${cleanDigits}`
+
+        // Initialize invisible RecaptchaVerifier
+        if (!(window as any).recaptchaVerifier) {
+          (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            size: 'invisible',
+          })
+        }
+
+        const confirmation = await signInWithPhoneNumber(auth, formattedPhone, (window as any).recaptchaVerifier)
+        setConfirmationResult(confirmation)
+        setOtpSent(true)
+        setResendCooldown(60)
+        setSuccessMsg(`SMS verification code dispatched to ${formattedPhone} via Google!`)
+        setLoading(false)
+        return
+      } catch (fbErr: any) {
+        console.warn('[FIREBASE_PHONE] Firebase client attempt note:', fbErr?.message || fbErr)
+        // If Firebase phone is not yet configured or fails, fallback seamlessly to backend OTP service
+      }
+    }
+
+    // Default / Fallback API OTP dispatch
     try {
       const res = await fetch('/api/auth/otp/send', {
         method: 'POST',
@@ -125,6 +158,35 @@ function CustomerLoginForm() {
     }
 
     setLoading(true)
+
+    // Handle Firebase Phone Confirmation if active
+    if (targetType === 'MOBILE' && confirmationResult && mode === 'OTP') {
+      try {
+        const userCredential = await confirmationResult.confirm(otpCode.trim())
+        const idToken = await userCredential.user.getIdToken()
+
+        const res = await fetch('/api/auth/phone-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phoneNumber: userCredential.user.phoneNumber || otpTarget,
+            idToken,
+          }),
+        })
+
+        const data = await res.json()
+        if (!res.ok) {
+          throw new Error(data.error || 'Phone authentication failed')
+        }
+
+        setSuccessMsg(data.message || 'Authentication successful! Directing to store...')
+        window.location.href = redirectUrl
+        return
+      } catch (fbVerifyErr: any) {
+        console.warn('[FIREBASE_VERIFY] Failed confirmation:', fbVerifyErr)
+        // Fallback to standard verification if user used local OTP
+      }
+    }
 
     try {
       const res = await fetch('/api/auth/otp/verify', {
@@ -460,6 +522,9 @@ function CustomerLoginForm() {
               </Link>
             </div>
           </div>
+
+          {/* Invisible Google Firebase Recaptcha Container */}
+          <div id="recaptcha-container"></div>
         </div>
       </div>
     </div>
