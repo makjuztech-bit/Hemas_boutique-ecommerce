@@ -19,13 +19,17 @@ export function validateCsrf(req: NextRequest): boolean {
   // Normalize host (remove trailing dots, lowercase)
   const normalizedHost = host.toLowerCase().split(':')[0]
 
+  const cleanDomain = (d: string) => d.toLowerCase().split(':')[0].replace(/^www\./, '')
+  const baseHost = cleanDomain(normalizedHost)
+
   if (origin) {
     try {
       const originHost = new URL(origin).hostname.toLowerCase()
+      const cleanOrigin = cleanDomain(originHost)
       if (
-        originHost === normalizedHost ||
-        (originHost === 'localhost' && normalizedHost === '127.0.0.1') ||
-        (originHost === '127.0.0.1' && normalizedHost === 'localhost')
+        cleanOrigin === baseHost ||
+        (cleanOrigin === 'localhost' && baseHost === '127.0.0.1') ||
+        (cleanOrigin === '127.0.0.1' && baseHost === 'localhost')
       ) {
         return true
       }
@@ -38,10 +42,11 @@ export function validateCsrf(req: NextRequest): boolean {
   if (referer) {
     try {
       const refererHost = new URL(referer).hostname.toLowerCase()
+      const cleanReferer = cleanDomain(refererHost)
       if (
-        refererHost === normalizedHost ||
-        (refererHost === 'localhost' && normalizedHost === '127.0.0.1') ||
-        (refererHost === '127.0.0.1' && normalizedHost === 'localhost')
+        cleanReferer === baseHost ||
+        (cleanReferer === 'localhost' && baseHost === '127.0.0.1') ||
+        (cleanReferer === '127.0.0.1' && baseHost === 'localhost')
       ) {
         return true
       }
