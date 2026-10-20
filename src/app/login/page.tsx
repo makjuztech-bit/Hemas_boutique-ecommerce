@@ -536,15 +536,7 @@ function CustomerLoginForm() {
                 Create Account
               </Link>
             </div>
-            <div className="pt-2 border-t border-[#F5E8DC]">
-              <Link
-                href="/admin/login"
-                className="inline-flex items-center gap-1 font-medium text-zinc-500 hover:text-zinc-800"
-              >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                Admin Portal Login
-              </Link>
-            </div>
+            {/* Admin portal login is only accessible via the admin backend URL */}
           </div>
 
           {/* Invisible Google Firebase Recaptcha Container */}

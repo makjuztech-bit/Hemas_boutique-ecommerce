@@ -1,0 +1,73 @@
+# Firebase App Hosting Configuration — ADMIN PANEL BACKEND
+# This backend serves only /admin/* routes.
+# Deploy with: firebase apphosting:backends:create --project makjuz-website
+
+runConfig:
+  cpu: 1
+  memoryMiB: 512
+  minInstances: 0
+  maxInstances: 3
+  concurrency: 40
+
+env:
+  # Tell middleware this is the admin-only backend
+  - variable: SITE_MODE
+    value: "admin"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # ── Shared Firebase config (same project) ──
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: "AIzaSyDQR-3Fdiy4nGSwOFOT8zjvAHXEaBiY5Vg"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: "makjuz-website.firebaseapp.com"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: "makjuz-website"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: "makjuz-website.firebasestorage.app"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "477071296423"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:477071296423:web:0fd827687653af30dad882"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_SUPABASE_URL
+    value: "https://touqplxjipxywoxhmxhm.supabase.co"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_SUPABASE_ANON_KEY
+    value: "sb_publishable_Agq9FERUDxE76cFUQtl9fQ_F8Kp_yzS"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: CLOUDINARY_CLOUD_NAME
+    value: "ijjxhluh"
+    availability:
+      - BUILD
+      - RUNTIME

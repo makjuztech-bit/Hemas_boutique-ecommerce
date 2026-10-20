@@ -9,6 +9,13 @@ runConfig:
   concurrency: 80
 
 env:
+  # Site mode: "main" blocks /admin routes, "admin" blocks all non-admin routes
+  - variable: SITE_MODE
+    value: "main"
+    availability:
+      - BUILD
+      - RUNTIME
+
   # Public Client Configurations
   - variable: NEXT_PUBLIC_SUPABASE_URL
     value: "https://touqplxjipxywoxhmxhm.supabase.co"
