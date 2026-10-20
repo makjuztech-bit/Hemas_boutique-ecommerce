@@ -5,9 +5,16 @@ import { checkRateLimit } from '@/lib/rateLimit'
 import { validateCsrf, csrfErrorResponse } from '@/lib/csrf'
 import { z } from 'zod'
 
+import { jwtVerify, createRemoteJWKSet } from 'jose'
+
+const FIREBASE_PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'hemasboutique-fc61c'
+const FIREBASE_JWKS = createRemoteJWKSet(
+  new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com')
+)
+
 const phoneLoginSchema = z.object({
   phoneNumber: z.string().min(10, 'Valid mobile number is required'),
-  idToken: z.string().optional(),
+  idToken: z.string().min(10, 'Valid Firebase authentication token is required'),
 })
 
 export async function POST(req: NextRequest) {
@@ -33,7 +40,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { phoneNumber } = parsed.data
+    const { phoneNumber, idToken } = parsed.data
     // Normalize phone number (strip spaces, symbols, leading +91 or 0)
     const cleanDigits = phoneNumber.replace(/[^0-9]/g, '')
     const tenDigitPhone = cleanDigits.length > 10 ? cleanDigits.slice(-10) : cleanDigits
@@ -42,6 +49,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: 'Please enter a valid 10-digit mobile number' },
         { status: 400 }
+      )
+    }
+
+    // Cryptographically verify Google Firebase ID Token
+    try {
+      const { payload } = await jwtVerify(idToken, FIREBASE_JWKS, {
+        issuer: `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`,
+        audience: FIREBASE_PROJECT_ID,
+      })
+      const tokenPhone = ((payload.phone_number as string) || '').replace(/[^0-9]/g, '')
+      if (!tokenPhone.endsWith(tenDigitPhone)) {
+        return NextResponse.json(
+          { error: 'Phone number does not match verified Google token' },
+          { status: 401 }
+        )
+      }
+    } catch (tokenErr: any) {
+      console.warn('[SECURITY] Invalid Firebase ID Token for phone login:', tokenErr?.message)
+      return NextResponse.json(
+        { error: 'Unauthorized: Invalid or expired phone verification token' },
+        { status: 401 }
       )
     }
 

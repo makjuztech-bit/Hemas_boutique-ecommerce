@@ -130,13 +130,19 @@ export default function StorefrontPage() {
       })
 
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to add to cart')
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.push('/login?redirect=/')
+          return
+        }
+        throw new Error(data.error || 'Failed to add to cart')
+      }
 
       setCartCount((prev) => prev + quantity)
       showToast(`Added "${productName}" to your cart!`)
       if (selectedProduct) setSelectedProduct(null)
     } catch (err: any) {
-      alert(err.message || 'Error adding to cart')
+      showToast(err.message || 'Error adding to cart')
     } finally {
       setAddingToCart(null)
     }

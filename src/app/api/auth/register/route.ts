@@ -44,12 +44,20 @@ export async function POST(req: NextRequest) {
 
     const { firstName, lastName, email, mobileNumber, password } = parsed.data
     const cleanEmail = email.toLowerCase().trim()
+    const rawDigits = mobileNumber ? mobileNumber.replace(/[^0-9]/g, '') : null
+    const cleanMobile = rawDigits ? (rawDigits.length > 10 ? rawDigits.slice(-10) : rawDigits) : null
 
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
           { email: cleanEmail },
-          ...(mobileNumber ? [{ mobileNumber: mobileNumber.trim() }] : []),
+          ...(cleanMobile
+            ? [
+                { mobileNumber: cleanMobile },
+                { mobileNumber: `+91${cleanMobile}` },
+                { mobileNumber: `91${cleanMobile}` },
+              ]
+            : []),
         ],
       },
     })
@@ -68,7 +76,7 @@ export async function POST(req: NextRequest) {
         firstName: firstName.trim(),
         lastName: lastName?.trim() || '',
         email: cleanEmail,
-        mobileNumber: mobileNumber?.trim() || null,
+        mobileNumber: cleanMobile,
         passwordHash,
         role: Role.CUSTOMER,
         emailVerified: new Date(),

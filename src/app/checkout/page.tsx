@@ -124,8 +124,9 @@ export default function CheckoutPage() {
   }
 
   const subtotal = items.reduce((acc, item) => {
-    const unitPrice = item.variant.salePrice || item.variant.price
-    return acc + unitPrice * item.quantity
+    if (!item?.variant) return acc
+    const unitPrice = item.variant.salePrice || item.variant.price || 0
+    return acc + unitPrice * (item.quantity || 1)
   }, 0)
 
   const tax = Math.round(subtotal * 0.05)
@@ -195,8 +196,13 @@ export default function CheckoutPage() {
         // 2. Open Razorpay Checkout modal
         const rawPhone = address.phone ? address.phone.replace(/[^0-9]/g, '') : ''
         const cleanPhone = rawPhone.length >= 10 ? rawPhone.slice(-10) : (rawPhone || undefined)
+        const activeRazorpayKey = orderData.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
+        if (!activeRazorpayKey) {
+          throw new Error('Payment gateway is temporarily unavailable. Please try again or choose Cash on Delivery.')
+        }
+
         const options = {
-          key: orderData.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_TmxBXynfsXvC1j',
+          key: activeRazorpayKey,
           amount: orderData.amount,
           currency: orderData.currency || 'INR',
           name: "Hema's Boutique",

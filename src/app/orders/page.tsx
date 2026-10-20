@@ -10,7 +10,8 @@ import {
   CheckCircle2,
   Clock,
   Truck,
-  Sparkles
+  Sparkles,
+  User
 } from 'lucide-react'
 
 type OrderItem = {
@@ -43,11 +44,16 @@ type Order = {
 export default function CustomerOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [unauthorized, setUnauthorized] = useState(false)
 
   useEffect(() => {
     async function fetchOrders() {
       try {
         const res = await fetch('/api/orders')
+        if (res.status === 401) {
+          setUnauthorized(true)
+          return
+        }
         const data = await res.json()
         if (data.orders) setOrders(data.orders)
       } catch (e) {
@@ -128,6 +134,21 @@ export default function CustomerOrdersPage() {
 
         {loading ? (
           <div className="py-20 text-center text-sm text-[#7A6458]">Fetching orders...</div>
+        ) : unauthorized ? (
+          <div className="text-center py-20 bg-white rounded-3xl border border-[#EADBCE] p-8 shadow-xs max-w-md mx-auto">
+            <User className="w-16 h-16 text-zinc-300 mx-auto mb-4" />
+            <h2 className="font-serif text-xl font-bold text-[#3B1522]">Sign In Required</h2>
+            <p className="text-xs text-[#7A6458] mt-1 mb-6">
+              Please sign in to access your boutique order history and live shipment tracking.
+            </p>
+            <Link
+              href="/login?redirect=/orders"
+              className="inline-flex items-center gap-2 bg-[#8A1A38] text-white px-6 py-3 rounded-xl font-semibold text-xs shadow-md hover:bg-[#6D152D] transition-colors"
+            >
+              <span>Sign In to Your Account</span>
+              <ArrowLeft className="w-4 h-4 rotate-180" />
+            </Link>
+          </div>
         ) : orders.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-3xl border border-[#EADBCE] p-8 shadow-xs">
             <Package className="w-16 h-16 text-zinc-300 mx-auto mb-4" />

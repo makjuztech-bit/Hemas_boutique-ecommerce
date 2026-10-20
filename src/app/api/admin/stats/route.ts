@@ -6,16 +6,19 @@ export async function GET() {
   try {
     await requireAdmin()
 
-    const [totalUsers, totalProducts, totalOrders, orders] = await Promise.all([
+    const [totalUsers, totalProducts, totalOrders, revenueAgg] = await Promise.all([
       prisma.user.count({ where: { role: 'CUSTOMER' } }),
       prisma.product.count({ where: { isArchived: false } }),
       prisma.order.count(),
-      prisma.order.findMany({
-        select: { total: true },
+      prisma.order.aggregate({
+        _sum: { total: true },
+        where: {
+          status: { in: ['PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED'] },
+        },
       }),
     ])
 
-    const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0)
+    const totalRevenue = revenueAgg._sum.total || 0
 
     const recentOrders = await prisma.order.findMany({
       take: 5,

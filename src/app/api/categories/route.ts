@@ -34,7 +34,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Category name is required' }, { status: 400 })
     }
 
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+    const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'category'
+    let slug = baseSlug
+    const existing = await prisma.category.findUnique({ where: { slug } })
+    if (existing) {
+      slug = `${baseSlug}-${Date.now().toString().slice(-4)}`
+    }
 
     const category = await prisma.category.create({
       data: {

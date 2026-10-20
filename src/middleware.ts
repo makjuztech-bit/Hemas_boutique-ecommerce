@@ -8,16 +8,15 @@ import { NextRequest, NextResponse } from 'next/server';
  *
  * Set SITE_MODE=admin in the admin backend's apphosting.yaml.
  */
-const SITE_MODE = process.env.SITE_MODE ?? 'main';
+const SITE_MODE = process.env.SITE_MODE ?? 'unified';
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (SITE_MODE === 'admin') {
-    // Admin backend: block every non-admin path
+    // Admin-only backend: block non-admin paths
     const isAdminPath = pathname.startsWith('/admin');
     if (!isAdminPath) {
-      // Redirect root visits to the admin login page
       const adminLogin = req.nextUrl.clone();
       adminLogin.pathname = '/admin/login';
       return NextResponse.redirect(adminLogin);
@@ -25,11 +24,14 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Main backend (default): block /admin/* entirely
-  if (pathname.startsWith('/admin')) {
-    return new NextResponse(null, { status: 404 });
+  if (SITE_MODE === 'main_only') {
+    // Dedicated storefront-only backend: block admin paths
+    if (pathname.startsWith('/admin')) {
+      return new NextResponse(null, { status: 404 });
+    }
   }
 
+  // Unified mode (default on Vercel/Render): allow both storefront and admin routes
   return NextResponse.next();
 }
 

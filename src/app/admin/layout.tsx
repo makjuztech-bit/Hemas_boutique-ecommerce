@@ -32,15 +32,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       try {
         const res = await fetch('/api/auth/me')
         const data = await res.json()
-        if (data.user) {
+        if (data.user && (data.user.role === 'SUPER_ADMIN' || data.user.role === 'STAFF')) {
           setAdminUser(data.user)
+        } else {
+          router.push('/admin/login')
         }
       } catch (e) {
         console.error(e)
+        router.push('/admin/login')
       }
     }
     loadAdminUser()
-  }, [pathname])
+  }, [pathname, router])
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' })

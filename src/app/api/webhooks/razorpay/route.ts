@@ -80,6 +80,11 @@ export async function POST(req: NextRequest) {
             currency: paymentEntity.currency || 'INR',
           },
         })
+
+        // Clear customer cart upon confirmed payment capture
+        await tx.cartItem.deleteMany({
+          where: { userId: order.userId },
+        })
       })
     } else if (eventType === 'payment.failed') {
       const order = await prisma.order.findUnique({
