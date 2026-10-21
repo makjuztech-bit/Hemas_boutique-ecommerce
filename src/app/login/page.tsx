@@ -517,17 +517,19 @@ function CustomerLoginForm() {
             </form>
           )}
 
-          {/* Quick Demo Credentials */}
-          <div className="mt-6 pt-5 border-t border-[#F5E8DC]">
-            <button
-              type="button"
-              onClick={fillDemoCustomer}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-medium text-[#8A1A38] bg-[#FDF2F4] hover:bg-[#FCE8ED] rounded-lg border border-[#F5D5DC] transition-colors cursor-pointer"
-            >
-              <UserCheck className="w-3.5 h-3.5" />
-              Fill Demo Customer Account (Priya Sharma)
-            </button>
-          </div>
+          {/* Quick Demo Credentials (Development only) */}
+          {process.env.NODE_ENV !== 'production' && (
+            <div className="mt-6 pt-5 border-t border-[#F5E8DC]">
+              <button
+                type="button"
+                onClick={fillDemoCustomer}
+                className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-medium text-[#8A1A38] bg-[#FDF2F4] hover:bg-[#FCE8ED] rounded-lg border border-[#F5D5DC] transition-colors cursor-pointer"
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                Fill Demo Customer Account (Priya Sharma)
+              </button>
+            </div>
+          )}
 
           <div className="mt-6 flex flex-col gap-2 text-center text-xs text-[#7A6458]">
             <div>

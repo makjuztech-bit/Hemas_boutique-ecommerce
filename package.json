@@ -7,7 +7,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test \"tests/**/*.test.ts\"",
+    "test": "tsx --env-file=.env.local --test \"tests/**/*.test.ts\"",
     "admin:provision": "tsx scripts/provision-admin.ts",
     "postinstall": "prisma generate || exit 0"
   },
