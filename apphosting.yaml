@@ -36,37 +36,37 @@ env:
       - RUNTIME
 
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
-    value: "AIzaSyDQR-3Fdiy4nGSwOFOT8zjvAHXEaBiY5Vg"
+    value: "AIzaSyBtNP1YAKS67aaFAPPsyqAOb5HWBf7nCrI"
     availability:
       - BUILD
       - RUNTIME
 
   - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-    value: "makjuz-website.firebaseapp.com"
+    value: "hemasboutique-fc61c.firebaseapp.com"
     availability:
       - BUILD
       - RUNTIME
 
   - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
-    value: "makjuz-website"
+    value: "hemasboutique-fc61c"
     availability:
       - BUILD
       - RUNTIME
 
   - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-    value: "makjuz-website.firebasestorage.app"
+    value: "hemasboutique-fc61c.firebasestorage.app"
     availability:
       - BUILD
       - RUNTIME
 
   - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-    value: "477071296423"
+    value: "4427658838584"
     availability:
       - BUILD
       - RUNTIME
 
   - variable: NEXT_PUBLIC_FIREBASE_APP_ID
-    value: "1:477071296423:web:0fd827687653af30dad882"
+    value: "1:427658838584:web:7ba6a6f7750bd76d721ccd"
     availability:
       - BUILD
       - RUNTIME
