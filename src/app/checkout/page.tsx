@@ -552,7 +552,7 @@ export default function CheckoutPage() {
                     <Sparkles className="w-5 h-5 text-[#8A1A38]" />
                   </label>
 
-                  {paymentMethod === 'ONLINE' && (
+                  {paymentMethod === 'ONLINE' && (process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '').startsWith('rzp_test') && (
                     <div className="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200/90 text-[11px] text-amber-900 space-y-1.5 animate-fadeIn">
                       <div className="flex items-center justify-between">
                         <span className="font-bold flex items-center gap-1.5 text-amber-900 uppercase tracking-wider text-[10px]">
@@ -578,6 +578,15 @@ export default function CheckoutPage() {
                           <p className="text-[9px] text-zinc-500">On simulation screen: Click &quot;Success&quot;</p>
                         </div>
                       </div>
+                    </div>
+                  )}
+
+                  {paymentMethod === 'ONLINE' && !(process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '').startsWith('rzp_test') && (
+                    <div className="p-3 rounded-xl bg-[#FAF7F2] border border-[#EADBCE] text-[11px] text-[#7A6458] flex items-center gap-2.5 animate-fadeIn">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>
+                        <strong className="text-[#3B1522]">100% Secure &amp; Encrypted Payment</strong> &bull; Supports all major Credit/Debit cards, UPI (GPay, PhonePe, Paytm), and NetBanking via Razorpay.
+                      </span>
                     </div>
                   )}
                 </div>
