@@ -22,6 +22,7 @@ import {
   Plus,
   Minus
 } from 'lucide-react'
+import { parseProductDescription } from '@/lib/productMeta'
 
 type Product = {
   id: string
@@ -59,6 +60,7 @@ export default function StorefrontPage() {
   const [cartCount, setCartCount] = useState(0)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [modalQuantity, setModalQuantity] = useState(1)
   const [addingToCart, setAddingToCart] = useState<string | null>(null)
 
@@ -359,6 +361,8 @@ export default function StorefrontPage() {
                 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'
               const inStock = (variant?.stockQuantity || 0) > 0
 
+              const { cleanDescription, meta } = parseProductDescription(product.description)
+
               return (
                 <div
                   key={product.id}
@@ -366,10 +370,7 @@ export default function StorefrontPage() {
                 >
                   {/* Image Container */}
                   <div
-                    onClick={() => {
-                      setSelectedProduct(product)
-                      setModalQuantity(1)
-                    }}
+                    onClick={() => router.push(`/products/${product.id}`)}
                     className="relative aspect-4/5 bg-[#F5EFE8] overflow-hidden cursor-pointer"
                   >
                     <img
@@ -382,27 +383,31 @@ export default function StorefrontPage() {
                         {product.category.name}
                       </span>
                     )}
-                    {salePrice && (
-                      <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
-                        Save {Math.round(((price - salePrice) / price) * 100)}%
-                      </span>
-                    )}
+                    <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5">
+                      {salePrice && (
+                        <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                          Save {Math.round(((price - salePrice) / price) * 100)}%
+                        </span>
+                      )}
+                      {meta.hasFeedingZip && (
+                        <span className="bg-white/90 backdrop-blur-md text-rose-800 border border-rose-200 text-[9px] font-bold px-2 py-0.5 rounded-full shadow-xs">
+                          🤱 Feed Zip
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Content Container */}
                   <div className="p-5 flex-1 flex flex-col justify-between">
                     <div>
                       <h3
-                        onClick={() => {
-                          setSelectedProduct(product)
-                          setModalQuantity(1)
-                        }}
+                        onClick={() => router.push(`/products/${product.id}`)}
                         className="font-serif text-lg font-bold text-[#3B1522] group-hover:text-[#8A1A38] transition-colors line-clamp-1 cursor-pointer"
                       >
                         {product.name}
                       </h3>
                       <p className="mt-1 text-xs text-[#7A6458] line-clamp-2 leading-relaxed">
-                        {product.description || 'Pure artisanal ethnic masterpiece.'}
+                        {cleanDescription || 'Pure artisanal ethnic masterpiece.'}
                       </p>
                     </div>
 
@@ -428,12 +433,10 @@ export default function StorefrontPage() {
                       </div>
 
                       <button
-                        onClick={() => variant && handleAddToCart(variant.id, 1, product.name)}
-                        disabled={!inStock || addingToCart === variant?.id}
-                        className="flex items-center gap-1.5 bg-[#8A1A38] hover:bg-[#6D152D] disabled:bg-zinc-300 text-white px-4 py-2.5 rounded-xl font-semibold text-xs transition-colors cursor-pointer shadow-sm"
+                        onClick={() => router.push(`/products/${product.id}`)}
+                        className="flex items-center gap-1.5 bg-[#8A1A38] hover:bg-[#6D152D] text-white px-3.5 py-2.5 rounded-xl font-semibold text-xs transition-colors cursor-pointer shadow-sm"
                       >
-                        <ShoppingBag className="w-3.5 h-3.5" />
-                        <span>{addingToCart === variant?.id ? 'Adding...' : 'Add'}</span>
+                        <span>Select Size →</span>
                       </button>
                     </div>
                   </div>
@@ -456,15 +459,40 @@ export default function StorefrontPage() {
             </button>
 
             <div className="grid grid-cols-1 md:grid-cols-2">
-              <div className="aspect-square bg-[#F5EFE8]">
-                <img
-                  src={
-                    selectedProduct.media[0]?.mediaAsset?.secureUrl ||
-                    'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'
-                  }
-                  alt={selectedProduct.name}
-                  className="w-full h-full object-cover"
-                />
+              <div className="flex flex-col bg-[#F5EFE8] p-4">
+                <div className="aspect-square rounded-2xl overflow-hidden bg-white shadow-xs">
+                  <img
+                    src={
+                      selectedProduct.media[selectedImageIndex]?.mediaAsset?.secureUrl ||
+                      selectedProduct.media[0]?.mediaAsset?.secureUrl ||
+                      'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'
+                    }
+                    alt={selectedProduct.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                {selectedProduct.media && selectedProduct.media.length > 1 && (
+                  <div className="flex items-center gap-2 mt-3 overflow-x-auto pb-1">
+                    {selectedProduct.media.map((m, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setSelectedImageIndex(idx)}
+                        className={`w-12 h-14 rounded-lg overflow-hidden border-2 shrink-0 transition-all cursor-pointer ${
+                          selectedImageIndex === idx
+                            ? 'border-[#8A1A38] scale-105 shadow-sm'
+                            : 'border-white/80 opacity-60 hover:opacity-100'
+                        }`}
+                      >
+                        <img
+                          src={m.mediaAsset?.secureUrl}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="p-6 flex flex-col justify-between">

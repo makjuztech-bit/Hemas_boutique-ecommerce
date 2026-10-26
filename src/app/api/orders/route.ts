@@ -103,7 +103,14 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { shippingAddress, paymentMethod = 'COD' } = await req.json()
+    const { shippingAddress, paymentMethod = 'ONLINE' } = await req.json()
+
+    if (paymentMethod === 'COD') {
+      return NextResponse.json(
+        { error: 'Cash on delivery is not accepted. Please pay securely online via Razorpay / UPI / Cards.' },
+        { status: 400 }
+      )
+    }
 
     if (!shippingAddress || !shippingAddress.fullName || !shippingAddress.street || !shippingAddress.city) {
       return NextResponse.json(

@@ -59,6 +59,59 @@ export async function POST(req: NextRequest) {
   }
 }
 
+export async function PUT(req: NextRequest) {
+  try {
+    if (!validateCsrf(req)) {
+      return csrfErrorResponse()
+    }
+
+    await requireAdmin()
+
+    const { id, name, slug, description } = await req.json()
+    if (!id || !name) {
+      return NextResponse.json({ error: 'Category ID and name are required' }, { status: 400 })
+    }
+
+    // Sanitize slug if provided, or derive from name
+    const rawSlug = slug && slug.trim() ? slug : name
+    const baseSlug = rawSlug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'category'
+    let finalSlug = baseSlug
+
+    // Check if another category has this slug
+    const existing = await prisma.category.findFirst({
+      where: {
+        slug: finalSlug,
+        NOT: { id },
+      },
+    })
+    if (existing) {
+      finalSlug = `${baseSlug}-${Date.now().toString().slice(-4)}`
+    }
+
+    const updated = await prisma.category.update({
+      where: { id },
+      data: {
+        name: name.trim(),
+        slug: finalSlug,
+        description: description !== undefined ? description : undefined,
+      },
+      include: {
+        _count: {
+          select: { products: true },
+        },
+      },
+    })
+
+    return NextResponse.json({ success: true, category: updated })
+  } catch (error: any) {
+    console.error('Update category error:', error)
+    return NextResponse.json(
+      { error: error?.message === 'FORBIDDEN' ? 'Access denied' : (error?.message || 'Failed to update category') },
+      { status: error?.message === 'FORBIDDEN' ? 403 : 500 }
+    )
+  }
+}
+
 export async function DELETE(req: NextRequest) {
   try {
     if (!validateCsrf(req)) {
@@ -87,3 +140,4 @@ export async function DELETE(req: NextRequest) {
     )
   }
 }
+

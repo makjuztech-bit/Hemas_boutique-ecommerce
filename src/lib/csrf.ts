@@ -33,8 +33,9 @@ export function validateCsrf(req: NextRequest): boolean {
       ) {
         return true
       }
+      return false
     } catch {
-      // invalid URL in origin
+      return false
     }
   }
 

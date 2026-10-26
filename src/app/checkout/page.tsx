@@ -10,7 +10,6 @@ import {
   CheckCircle,
   Truck,
   CreditCard,
-  Building,
   Sparkles,
   MapPin,
   Lock
@@ -86,7 +85,7 @@ export default function CheckoutPage() {
   })
 
   const [userEmail, setUserEmail] = useState('')
-  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'ONLINE'>('ONLINE')
+  const paymentMethod = 'ONLINE'
 
   useEffect(() => {
     // Preload Razorpay checkout SDK in the background immediately
@@ -162,44 +161,29 @@ export default function CheckoutPage() {
     setPlacingOrder(true)
 
     try {
-      if (paymentMethod === 'COD') {
-        // Cash on delivery flow
-        const res = await fetch('/api/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            shippingAddress: address,
-            paymentMethod: 'COD',
-          }),
-        })
+      // Razorpay Online Payment Flow
+      const scriptLoaded = await ensureRazorpayLoaded()
+      if (!scriptLoaded) {
+        throw new Error('Razorpay payment gateway failed to load. Please check your internet connection or disable ad-blockers.')
+      }
 
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.error || 'Failed to place order')
-        setOrderSuccess(data.order)
-      } else {
-        // Razorpay Online Payment Flow
-        const scriptLoaded = await ensureRazorpayLoaded()
-        if (!scriptLoaded) {
-          throw new Error('Razorpay payment gateway failed to load. Please check your internet connection or disable ad-blockers.')
-        }
+      // 1. Create server-side order and razorpay order
+      const createRes = await fetch('/api/checkout/razorpay-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shippingAddress: address }),
+      })
 
-        // 1. Create server-side order and razorpay order
-        const createRes = await fetch('/api/checkout/razorpay-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ shippingAddress: address }),
-        })
+      const orderData = await createRes.json()
+      if (!createRes.ok) throw new Error(orderData.error || 'Failed to initialize payment gateway order')
 
-        const orderData = await createRes.json()
-        if (!createRes.ok) throw new Error(orderData.error || 'Failed to initialize payment gateway order')
-
-        // 2. Open Razorpay Checkout modal
-        const rawPhone = address.phone ? address.phone.replace(/[^0-9]/g, '') : ''
-        const cleanPhone = rawPhone.length >= 10 ? rawPhone.slice(-10) : (rawPhone || undefined)
-        const activeRazorpayKey = orderData.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
-        if (!activeRazorpayKey) {
-          throw new Error('Payment gateway is temporarily unavailable. Please try again or choose Cash on Delivery.')
-        }
+      // 2. Open Razorpay Checkout modal
+      const rawPhone = address.phone ? address.phone.replace(/[^0-9]/g, '') : ''
+      const cleanPhone = rawPhone.length >= 10 ? rawPhone.slice(-10) : (rawPhone || undefined)
+      const activeRazorpayKey = orderData.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
+      if (!activeRazorpayKey) {
+        throw new Error('Payment gateway is temporarily unavailable. Please check your connection and try again.')
+      }
 
         const options = {
           key: activeRazorpayKey,
@@ -259,7 +243,6 @@ export default function CheckoutPage() {
         rzp.open()
         // Modal is now open, return button to ready state
         setPlacingOrder(false)
-      }
     } catch (err: any) {
       console.error('Checkout error:', err)
       setErrorMsg(err.message || 'Error processing your checkout')
@@ -296,8 +279,8 @@ export default function CheckoutPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-[#7A6458]">Payment Mode:</span>
-              <span className="font-medium text-zinc-900">
-                {orderSuccess.status === 'PAID' ? 'Razorpay Online Verified' : 'Cash on Delivery (Pending)'}
+              <span className="font-medium text-emerald-800 font-semibold">
+                Razorpay Online (Verified)
               </span>
             </div>
             <div className="flex justify-between">
@@ -502,55 +485,20 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <label
-                    onClick={() => setPaymentMethod('COD')}
-                    className={`flex items-center justify-between p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-                      paymentMethod === 'COD'
-                        ? 'border-[#8A1A38] bg-[#FDF4F6]'
-                        : 'border-[#EADBCE] hover:bg-[#FAF6F0]'
-                    }`}
-                  >
+                  <div className="flex items-center justify-between p-4 rounded-2xl border-2 border-[#8A1A38] bg-[#FDF4F6] transition-all">
                     <div className="flex items-center gap-3">
-                      <input
-                        type="radio"
-                        name="payment"
-                        checked={paymentMethod === 'COD'}
-                        onChange={() => setPaymentMethod('COD')}
-                        className="text-[#8A1A38] focus:ring-[#8A1A38]"
-                      />
-                      <div>
-                        <p className="text-sm font-bold text-[#3B1522]">Cash on Delivery (COD)</p>
-                        <p className="text-xs text-[#7A6458]">Pay upon delivery via cash or UPI to delivery agent</p>
-                      </div>
-                    </div>
-                    <Building className="w-5 h-5 text-[#8A1A38]" />
-                  </label>
-
-                  <label
-                    onClick={() => setPaymentMethod('ONLINE')}
-                    className={`flex items-center justify-between p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-                      paymentMethod === 'ONLINE'
-                        ? 'border-[#8A1A38] bg-[#FDF4F6]'
-                        : 'border-[#EADBCE] hover:bg-[#FAF6F0]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="radio"
-                        name="payment"
-                        checked={paymentMethod === 'ONLINE'}
-                        onChange={() => setPaymentMethod('ONLINE')}
-                        className="text-[#8A1A38] focus:ring-[#8A1A38]"
-                      />
+                      <div className="w-5 h-5 rounded-full border-4 border-[#8A1A38] bg-white flex items-center justify-center shrink-0" />
                       <div>
                         <p className="text-sm font-bold text-[#3B1522]">
                           Razorpay / Cards / UPI / NetBanking
                         </p>
-                        <p className="text-xs text-[#7A6458]">Official Razorpay Gateway (Instant verification &amp; order confirmation)</p>
+                        <p className="text-xs text-[#7A6458]">
+                          Instant verification &amp; order confirmation (Google Pay, PhonePe, Paytm, Cards, NetBanking)
+                        </p>
                       </div>
                     </div>
                     <Sparkles className="w-5 h-5 text-[#8A1A38]" />
-                  </label>
+                  </div>
 
                   {paymentMethod === 'ONLINE' && (process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '').startsWith('rzp_test') && (
                     <div className="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200/90 text-[11px] text-amber-900 space-y-1.5 animate-fadeIn">
@@ -659,7 +607,7 @@ export default function CheckoutPage() {
                 ) : (
                   <>
                     <ShieldCheck className="w-4 h-4" />
-                    <span>{paymentMethod === 'ONLINE' ? 'Proceed with Razorpay' : 'Confirm Cash on Delivery'}</span>
+                    <span>Proceed to Pay with Razorpay</span>
                   </>
                 )}
               </button>

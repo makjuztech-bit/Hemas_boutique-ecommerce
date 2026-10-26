@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/backend/db/prisma'
 import { requireAdmin } from '@/backend/auth/session'
 import { validateCsrf, csrfErrorResponse } from '@/lib/csrf'
+import { serializeProductDescription, parseProductDescription } from '@/lib/productMeta'
 
 export async function GET(
   req: NextRequest,
@@ -48,36 +49,184 @@ export async function PUT(
     const { id } = await params
     const body = await req.json()
 
-    const { name, description, categoryId, price, stockQuantity, isPublished } = body
+    const {
+      name,
+      description,
+      categoryId,
+      price,
+      salePrice,
+      actualPrice,
+      sellingPrice,
+      stockQuantity,
+      sku,
+      isPublished,
+      images,
+      sizes,
+      hasFeedingZip,
+      feedingZipPrice,
+    } = body
+
+    // Load existing product to preserve metadata if not explicitly provided
+    const existingProduct = await prisma.product.findUnique({
+      where: { id },
+      include: { variants: true },
+    })
+
+    const existingMeta = parseProductDescription(existingProduct?.description).meta
+    const effectiveSizes: string[] = Array.isArray(sizes) && sizes.length > 0 ? sizes : existingMeta.sizes
+    const effectiveFeedingZip: boolean = hasFeedingZip !== undefined ? Boolean(hasFeedingZip) : existingMeta.hasFeedingZip
+    const effectiveZipPrice: number = feedingZipPrice !== undefined ? Number(feedingZipPrice) : existingMeta.feedingZipPrice
+    const zipPricePaise = Math.round(effectiveZipPrice * 100)
+
+    let finalDescription: string | undefined = undefined
+    if (description !== undefined || sizes !== undefined || hasFeedingZip !== undefined || feedingZipPrice !== undefined) {
+      const baseDesc = description !== undefined ? description : parseProductDescription(existingProduct?.description).cleanDescription
+      finalDescription = serializeProductDescription(baseDesc, {
+        hasFeedingZip: effectiveFeedingZip,
+        feedingZipPrice: effectiveZipPrice,
+        sizes: effectiveSizes,
+      })
+    }
 
     const updated = await prisma.product.update({
       where: { id },
       data: {
         ...(name ? { name } : {}),
-        ...(description !== undefined ? { description } : {}),
+        ...(finalDescription !== undefined ? { description: finalDescription } : {}),
         ...(categoryId !== undefined ? { categoryId: categoryId || null } : {}),
         ...(isPublished !== undefined ? { isPublished } : {}),
       },
     })
 
-    // Update primary variant price or stock if supplied
-    if (price !== undefined || stockQuantity !== undefined) {
-      const primaryVariant = await prisma.productVariant.findFirst({
+    // Determine actual MRP price and selling/offer price
+    const inputActual = actualPrice !== undefined && actualPrice !== null && actualPrice !== ''
+      ? Number(actualPrice)
+      : (price !== undefined && price !== null && price !== '' ? Number(price) : null)
+
+    const inputSelling = sellingPrice !== undefined && sellingPrice !== null && sellingPrice !== ''
+      ? Number(sellingPrice)
+      : (salePrice !== undefined && salePrice !== null && salePrice !== '' ? Number(salePrice) : null)
+
+    let variantPricePaise: number | undefined = undefined
+    let variantSalePricePaise: number | null | undefined = undefined
+
+    if (inputActual !== null && inputSelling !== null && inputActual > 0 && inputSelling > 0) {
+      if (inputActual > inputSelling) {
+        variantPricePaise = Math.round(inputActual * 100)
+        variantSalePricePaise = Math.round(inputSelling * 100)
+      } else {
+        variantPricePaise = Math.round(inputSelling * 100)
+        variantSalePricePaise = null
+      }
+    } else if (inputSelling !== null && inputSelling > 0) {
+      variantPricePaise = Math.round(inputSelling * 100)
+      variantSalePricePaise = null
+    } else if (inputActual !== null && inputActual > 0) {
+      variantPricePaise = Math.round(inputActual * 100)
+      variantSalePricePaise = null
+    }
+
+    // Check if any variants are locked by past customer orders
+    const hasOrders = await prisma.orderItem.findFirst({
+      where: { variant: { productId: id } },
+    })
+
+    const baseSku = sku?.trim() || existingProduct?.variants[0]?.sku?.split('-')[0] || `HB-${id.slice(0, 4)}`
+    const effectiveBasePrice = variantPricePaise ?? existingProduct?.variants[0]?.price ?? 199900
+    const effectiveSalePrice = variantSalePricePaise !== undefined ? variantSalePricePaise : (existingProduct?.variants[0]?.salePrice ?? null)
+    const qtyPerVariant = Math.max(1, Math.round((Number(stockQuantity) || 10) / effectiveSizes.length))
+
+    if (!hasOrders && (sizes !== undefined || hasFeedingZip !== undefined || variantPricePaise !== undefined)) {
+      // Safely replace variants with current size & feeding zip combinations
+      await prisma.productVariant.deleteMany({ where: { productId: id } })
+
+      const newVariants: any[] = []
+      effectiveSizes.forEach((sz) => {
+        // Standard variant
+        newVariants.push({
+          productId: id,
+          sku: `${baseSku}-${sz.replace(/[^a-zA-Z0-9]/g, '')}`,
+          size: sz,
+          color: 'Standard',
+          price: effectiveBasePrice,
+          salePrice: effectiveSalePrice,
+          stockQuantity: qtyPerVariant,
+        })
+
+        // Feeding zip variant
+        if (effectiveFeedingZip) {
+          newVariants.push({
+            productId: id,
+            sku: `${baseSku}-${sz.replace(/[^a-zA-Z0-9]/g, '')}-ZIP`,
+            size: sz,
+            color: 'Feeding Zip',
+            price: effectiveBasePrice + zipPricePaise,
+            salePrice: effectiveSalePrice ? effectiveSalePrice + zipPricePaise : null,
+            stockQuantity: qtyPerVariant,
+          })
+        }
+      })
+
+      await prisma.productVariant.createMany({ data: newVariants })
+    } else {
+      // If locked by orders or simple stock update, update existing variants
+      await prisma.productVariant.updateMany({
+        where: { productId: id },
+        data: {
+          ...(variantPricePaise !== undefined ? { price: variantPricePaise } : {}),
+          ...(variantSalePricePaise !== undefined ? { salePrice: variantSalePricePaise } : {}),
+          ...(stockQuantity !== undefined ? { stockQuantity: qtyPerVariant } : {}),
+        },
+      })
+    }
+
+    // Update images if provided (array of up to 4 image URLs)
+    if (Array.isArray(images)) {
+      const validImages = images
+        .filter((img) => typeof img === 'string' && img.trim().length > 0)
+        .slice(0, 4)
+
+      // Remove existing product media relations
+      await prisma.productMedia.deleteMany({
         where: { productId: id },
       })
 
-      if (primaryVariant) {
-        await prisma.productVariant.update({
-          where: { id: primaryVariant.id },
+      // Add new product media entries with sortOrder 0, 1, 2, 3
+      for (let i = 0; i < validImages.length; i++) {
+        const url = validImages[i].trim()
+        const mediaAsset = await prisma.mediaAsset.create({
           data: {
-            ...(price !== undefined ? { price: Math.round(Number(price) * 100) } : {}),
-            ...(stockQuantity !== undefined ? { stockQuantity: Number(stockQuantity) } : {}),
+            publicId: `prod_${id}_${i}_${Date.now()}`,
+            secureUrl: url,
+            altText: `${name || updated.name} - View ${i + 1}`,
+          },
+        })
+
+        await prisma.productMedia.create({
+          data: {
+            productId: id,
+            mediaAssetId: mediaAsset.id,
+            sortOrder: i,
           },
         })
       }
     }
 
-    return NextResponse.json({ success: true, product: updated })
+    const fullProduct = await prisma.product.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        variants: true,
+        media: {
+          include: {
+            mediaAsset: true,
+          },
+          orderBy: { sortOrder: 'asc' },
+        },
+      },
+    })
+
+    return NextResponse.json({ success: true, product: fullProduct })
   } catch (error: any) {
     console.error('Update product error:', error)
     return NextResponse.json(
