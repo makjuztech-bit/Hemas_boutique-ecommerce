@@ -12,7 +12,8 @@ import {
   CreditCard,
   Sparkles,
   MapPin,
-  Lock
+  Lock,
+  Phone
 } from 'lucide-react'
 
 // Resilient helper to guarantee Razorpay checkout SDK is loaded
@@ -611,6 +612,19 @@ export default function CheckoutPage() {
                   </>
                 )}
               </button>
+
+              <div className="mt-5 pt-4 border-t border-[#F0E4D8] text-[11px] text-[#7A6458] space-y-1.5">
+                <p className="font-semibold text-[#3B1522] flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-[#8A1A38]" />
+                  <span>Need help with your order?</span>
+                </p>
+                <p>
+                  Call or WhatsApp our boutique: <a href="tel:+918056686443" className="font-bold text-[#8A1A38] hover:underline">+91 80566 86443</a>
+                </p>
+                <p className="text-[10px] text-[#9E8B82] leading-tight">
+                  Flagship Store: No 33a, Vallal Pachayappan Street, Near Cinderella Scan, Kanchipuram 631502.
+                </p>
+              </div>
             </div>
           </form>
         )}

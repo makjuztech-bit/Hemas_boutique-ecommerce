@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: "%s | Hema's Boutique",
   },
   description:
-    "Discover authentic handcrafted Kanchipuram silk sarees, Banarasi georgettes, royal bridal lehengas, and bespoke festive ethnic couture at Hema's Boutique.",
+    "Discover authentic handcrafted Kanchipuram silk sarees, Banarasi georgettes, royal bridal lehengas, and bespoke festive ethnic couture at Hema's Boutique. Flagship store at Vallal Pachayappan Street, Kanchipuram.",
   keywords: [
     "Hema's Boutique",
     "Kanchipuram Silk Sarees",
@@ -33,7 +33,9 @@ export const metadata: Metadata = {
     "Indian Ethnic Wear",
     "Handloom Sarees",
     "Bridal Couture",
-    "Chennai Boutique",
+    "Kanchipuram Boutique",
+    "Vallal Pachayappan Street",
+    "Women's Tex Valley",
   ],
   authors: [{ name: "Hema's Boutique" }],
   creator: "Hema's Boutique",

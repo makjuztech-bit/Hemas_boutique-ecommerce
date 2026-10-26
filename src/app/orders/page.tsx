@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Footer from '@/components/Footer'
 import {
   Package,
   ArrowLeft,
@@ -246,6 +247,7 @@ export default function CustomerOrdersPage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   )
 }

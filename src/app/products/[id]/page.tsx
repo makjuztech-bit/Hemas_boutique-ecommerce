@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import Link from 'next/navigation'
+import Link from 'next/link'
 import BrandLogo from '@/components/BrandLogo'
+import Footer from '@/components/Footer'
 import {
   ShoppingBag,
   Heart,
@@ -20,7 +21,10 @@ import {
   Ruler,
   X,
   AlertCircle,
-  ArrowLeft
+  ArrowLeft,
+  Phone,
+  MessageCircle,
+  MapPin
 } from 'lucide-react'
 import { parseProductDescription } from '@/lib/productMeta'
 
@@ -543,6 +547,28 @@ export default function ProductDetailPage() {
                   <span>Artisanal Zari Weave</span>
                 </div>
               </div>
+
+              {/* Boutique Direct Concierge Callout */}
+              <div className="bg-[#FAF4EC] p-4 rounded-2xl border border-[#EBDCCF] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs mt-3">
+                <div className="flex items-start gap-2.5">
+                  <Phone className="w-4 h-4 text-[#8A1A38] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold text-[#3B1522]">Need Sizing or Styling Assistance?</p>
+                    <p className="text-[11px] text-[#7A6458]">
+                      Our Kanchipuram master stylists are here to assist: <a href="tel:+918056686443" className="font-bold text-[#8A1A38] hover:underline">+91 80566 86443</a>
+                    </p>
+                  </div>
+                </div>
+                <a
+                  href={`https://wa.me/918056686443?text=Hello%20Hema's%20Boutique,%20I%20have%20an%20inquiry%20regarding%20${encodeURIComponent(product.name)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#25D366] text-white text-[11px] font-bold hover:bg-[#20bd5a] transition-colors shrink-0 shadow-xs"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  <span>WhatsApp Concierge</span>
+                </a>
+              </div>
             </div>
 
             {/* Description Details Tab / Box */}
@@ -708,9 +734,7 @@ export default function ProductDetailPage() {
       )}
 
       {/* Footer */}
-      <footer className="bg-white border-t border-[#EADBCE] py-8 text-center text-xs text-[#8A7268] mt-12">
-        <p>© 2026 Hema&apos;s Boutique. Crafted with artisanal luxury and love.</p>
-      </footer>
+      <Footer />
     </div>
   )
 }

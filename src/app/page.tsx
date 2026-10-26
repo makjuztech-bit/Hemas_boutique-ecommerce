@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import BrandLogo from '@/components/BrandLogo'
+import Footer from '@/components/Footer'
 import {
   ShoppingBag,
   User,
@@ -178,9 +179,13 @@ export default function StorefrontPage() {
 
       {/* Top Notification Bar */}
       <div className="bg-[#8A1A38] text-white text-[11px] font-medium py-1.5 px-4 text-center tracking-wide flex items-center justify-center gap-4">
-        <span>✨ Welcome to Hema&apos;s Boutique — Handcrafted Luxury Festive &amp; Bridal Collections</span>
+        <span>✨ Welcome to Hema&apos;s Boutique — Kanchipuram Flagship Store</span>
         <span className="hidden sm:inline opacity-75">|</span>
-        <span className="hidden sm:inline">Free Domestic Shipping on Orders above ₹2,000</span>
+        <a href="tel:+918056686443" className="hidden sm:inline hover:underline font-semibold text-amber-300">
+          📞 Boutique Phone: 8056686443
+        </a>
+        <span className="hidden md:inline opacity-75">|</span>
+        <span className="hidden md:inline">Free Domestic Shipping on Orders above ₹2,000</span>
       </div>
 
       {/* Main Navigation */}
@@ -574,64 +579,7 @@ export default function StorefrontPage() {
       )}
 
       {/* Footer */}
-      <footer className="bg-[#2D1B22] text-[#E8D9CE] py-12 px-4 sm:px-6 lg:px-8 mt-16 border-t border-[#422933]">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div>
-            <div className="mb-3">
-              <BrandLogo size="md" variant="dark" href="/" subtitle="Women's Tex Valley" />
-            </div>
-            <p className="text-xs text-[#C9B4A7] leading-relaxed">
-              Celebrating Indian handloom craftsmanship, royal wedding couture, and bespoke sarees. Authentic Kanchipuram silk and bridal ensembles.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-3">
-              Quick Links
-            </h4>
-            <ul className="space-y-2 text-xs text-[#C9B4A7]">
-              <li>
-                <Link href="/" className="hover:text-white transition-colors">
-                  Storefront Catalog
-                </Link>
-              </li>
-              <li>
-                <Link href="/cart" className="hover:text-white transition-colors">
-                  Shopping Cart
-                </Link>
-              </li>
-              <li>
-                <Link href="/orders" className="hover:text-white transition-colors">
-                  Track My Orders
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin" className="hover:text-amber-400 transition-colors">
-                  Admin Panel Portal
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-3">
-              Customer Concierge
-            </h4>
-            <div className="space-y-2 text-xs text-[#C9B4A7]">
-              <p className="flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 text-amber-400" />
-                <span>+91 99999 99999 / +91 98765 43210</span>
-              </p>
-              <p>Email: contact@hemasboutique.com</p>
-              <p>Mon - Sat, 10:00 AM - 8:00 PM IST</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto mt-8 pt-6 border-t border-[#422933] text-center text-[11px] text-[#A68F81]">
-          &copy; {new Date().getFullYear()} Hema&apos;s Boutique. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import Footer from '@/components/Footer'
 import {
   ShoppingBag,
   Trash2,
@@ -299,6 +300,7 @@ export default function CartPage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   )
 }
