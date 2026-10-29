@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/backend/db/prisma'
 import { requireAdmin } from '@/backend/auth/session'
 import { validateCsrf, csrfErrorResponse } from '@/lib/csrf'
-import { serializeProductDescription, parseProductDescription } from '@/lib/productMeta'
+import { serializeProductDescription, parseProductDescription, extractBaseSku } from '@/lib/productMeta'
 
 export async function GET(
   req: NextRequest,
@@ -127,49 +127,83 @@ export async function PUT(
     }
 
     // Check if any variants are locked by past customer orders
+    // Check if any variants are locked by past customer orders
     const hasOrders = await prisma.orderItem.findFirst({
       where: { variant: { productId: id } },
     })
 
-    const baseSku = sku?.trim() || existingProduct?.variants[0]?.sku?.split('-')[0] || `HB-${id.slice(0, 4)}`
+    const baseSku = sku?.trim() || extractBaseSku(existingProduct?.variants[0]?.sku) || `HB-${id.slice(0, 8).toUpperCase()}`
     const effectiveBasePrice = variantPricePaise ?? existingProduct?.variants[0]?.price ?? 199900
     const effectiveSalePrice = variantSalePricePaise !== undefined ? variantSalePricePaise : (existingProduct?.variants[0]?.salePrice ?? null)
-    const qtyPerVariant = Math.max(1, Math.round((Number(stockQuantity) || 10) / effectiveSizes.length))
+    
+    const parsedStock = stockQuantity !== undefined && stockQuantity !== null && stockQuantity !== ''
+      ? Number(stockQuantity)
+      : (existingProduct?.variants[0]?.stockQuantity ?? 10)
+    const safeStock = isNaN(parsedStock) || parsedStock < 0 ? 0 : parsedStock
+    const qtyPerVariant = effectiveSizes.length > 0 ? Math.floor(safeStock / effectiveSizes.length) : safeStock
 
-    if (!hasOrders && (sizes !== undefined || hasFeedingZip !== undefined || variantPricePaise !== undefined)) {
-      // Safely replace variants with current size & feeding zip combinations
-      await prisma.productVariant.deleteMany({ where: { productId: id } })
+    // Construct target variants
+    const newVariants: any[] = []
+    effectiveSizes.forEach((sz) => {
+      const cleanSz = sz.replace(/[^a-zA-Z0-9]/g, '')
+      const targetSku = effectiveSizes.length === 1 && cleanSz === 'FreeSize' && !effectiveFeedingZip
+        ? baseSku
+        : `${baseSku}-${cleanSz}`
 
-      const newVariants: any[] = []
-      effectiveSizes.forEach((sz) => {
-        // Standard variant
-        newVariants.push({
-          productId: id,
-          sku: `${baseSku}-${sz.replace(/[^a-zA-Z0-9]/g, '')}`,
-          size: sz,
-          color: 'Standard',
-          price: effectiveBasePrice,
-          salePrice: effectiveSalePrice,
-          stockQuantity: qtyPerVariant,
-        })
-
-        // Feeding zip variant
-        if (effectiveFeedingZip) {
-          newVariants.push({
-            productId: id,
-            sku: `${baseSku}-${sz.replace(/[^a-zA-Z0-9]/g, '')}-ZIP`,
-            size: sz,
-            color: 'Feeding Zip',
-            price: effectiveBasePrice + zipPricePaise,
-            salePrice: effectiveSalePrice ? effectiveSalePrice + zipPricePaise : null,
-            stockQuantity: qtyPerVariant,
-          })
-        }
+      // Standard variant
+      newVariants.push({
+        productId: id,
+        sku: targetSku,
+        size: sz,
+        color: 'Standard',
+        price: effectiveBasePrice,
+        salePrice: effectiveSalePrice,
+        stockQuantity: qtyPerVariant,
       })
 
+      // Feeding zip variant
+      if (effectiveFeedingZip) {
+        newVariants.push({
+          productId: id,
+          sku: `${baseSku}-${cleanSz}-ZIP`,
+          size: sz,
+          color: 'Feeding Zip',
+          price: effectiveBasePrice + zipPricePaise,
+          salePrice: effectiveSalePrice ? effectiveSalePrice + zipPricePaise : null,
+          stockQuantity: qtyPerVariant,
+        })
+      }
+    })
+
+    // Pre-check for SKU collisions against any OTHER product
+    const candidateSkus = newVariants.map((v) => v.sku)
+    const collisionVariant = await prisma.productVariant.findFirst({
+      where: {
+        OR: [
+          { sku: { in: candidateSkus } },
+          { sku: baseSku },
+          { sku: { startsWith: `${baseSku}-` } },
+        ],
+        productId: { not: id },
+      },
+      select: { sku: true, product: { select: { name: true } } },
+    })
+
+    if (collisionVariant) {
+      return NextResponse.json(
+        {
+          error: `SKU "${baseSku}" is already used by "${collisionVariant.product?.name || 'another product'}". Please choose a unique SKU.`,
+        },
+        { status: 400 }
+      )
+    }
+
+    if (!hasOrders && (sizes !== undefined || hasFeedingZip !== undefined || variantPricePaise !== undefined || sku !== undefined)) {
+      // Safely replace variants with current size & feeding zip combinations
+      await prisma.productVariant.deleteMany({ where: { productId: id } })
       await prisma.productVariant.createMany({ data: newVariants })
     } else {
-      // If locked by orders or simple stock update, update existing variants
+      // If locked by orders, update existing variants in-place to preserve order integrity
       await prisma.productVariant.updateMany({
         where: { productId: id },
         data: {
@@ -178,6 +212,19 @@ export async function PUT(
           ...(stockQuantity !== undefined ? { stockQuantity: qtyPerVariant } : {}),
         },
       })
+
+      // Safely update SKU on existing variants if updated and not colliding
+      if (sku?.trim()) {
+        const canUpdateSku = !await prisma.productVariant.findFirst({
+          where: { sku: sku.trim(), productId: { not: id } }
+        })
+        if (canUpdateSku) {
+          await prisma.productVariant.updateMany({
+            where: { productId: id },
+            data: { sku: sku.trim() }
+          })
+        }
+      }
     }
 
     // Update images if provided (array of up to 4 image URLs)
@@ -191,16 +238,22 @@ export async function PUT(
         where: { productId: id },
       })
 
-      // Add new product media entries with sortOrder 0, 1, 2, 3
+      // Link or create media assets with sortOrder 0, 1, 2, 3
       for (let i = 0; i < validImages.length; i++) {
         const url = validImages[i].trim()
-        const mediaAsset = await prisma.mediaAsset.create({
-          data: {
-            publicId: `prod_${id}_${i}_${Date.now()}`,
-            secureUrl: url,
-            altText: `${name || updated.name} - View ${i + 1}`,
-          },
+        let mediaAsset = await prisma.mediaAsset.findFirst({
+          where: { secureUrl: url },
         })
+
+        if (!mediaAsset) {
+          mediaAsset = await prisma.mediaAsset.create({
+            data: {
+              publicId: `prod_${id}_${i}_${Date.now()}`,
+              secureUrl: url,
+              altText: `${name || updated.name} - View ${i + 1}`,
+            },
+          })
+        }
 
         await prisma.productMedia.create({
           data: {
@@ -229,8 +282,14 @@ export async function PUT(
     return NextResponse.json({ success: true, product: fullProduct })
   } catch (error: any) {
     console.error('Update product error:', error)
+    if (error?.code === 'P2002') {
+      return NextResponse.json(
+        { error: 'A product with this SKU already exists. Please choose a unique SKU.' },
+        { status: 400 }
+      )
+    }
     return NextResponse.json(
-      { error: error?.message === 'FORBIDDEN' ? 'Access denied' : 'Failed to update product' },
+      { error: error?.message === 'FORBIDDEN' ? 'Access denied' : (error?.message || 'Failed to update product') },
       { status: error?.message === 'FORBIDDEN' ? 403 : 500 }
     )
   }

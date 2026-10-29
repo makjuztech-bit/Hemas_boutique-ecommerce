@@ -19,7 +19,7 @@ import {
   Sparkles,
   Heart
 } from 'lucide-react'
-import { parseProductDescription } from '@/lib/productMeta'
+import { parseProductDescription, extractBaseSku } from '@/lib/productMeta'
 
 const AVAILABLE_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'Free Size']
 
@@ -263,7 +263,7 @@ export default function AdminProductsPage() {
       actualPrice: actPrice,
       sellingPrice: sellPrice,
       stockQuantity: String(primaryVariant?.stockQuantity ?? 10),
-      sku: primaryVariant?.sku?.split('-')[0] || '',
+      sku: extractBaseSku(primaryVariant?.sku) || '',
     })
 
     // Sizing and Mother Feed Zip
@@ -751,7 +751,7 @@ export default function AdminProductsPage() {
 
                       <td className="py-3 px-4">
                         <div className="font-mono text-zinc-400 text-[11px]">
-                          {variant?.sku?.split('-')[0] || 'N/A'}
+                          {extractBaseSku(variant?.sku) || 'N/A'}
                         </div>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {sizesList.map((sz) => (

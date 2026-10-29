@@ -31,6 +31,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     async function loadAdminUser() {
       try {
         const res = await fetch('/api/auth/me')
+        if (!res.ok) {
+          router.push('/admin/login')
+          return
+        }
         const data = await res.json()
         if (data.user && (data.user.role === 'SUPER_ADMIN' || data.user.role === 'STAFF')) {
           setAdminUser(data.user)
@@ -38,7 +42,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           router.push('/admin/login')
         }
       } catch (e) {
-        console.error(e)
+        console.error('Failed to authenticate admin session:', e)
         router.push('/admin/login')
       }
     }

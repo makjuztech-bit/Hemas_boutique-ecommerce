@@ -45,6 +45,10 @@ export default function CartPage() {
   const fetchCart = async () => {
     try {
       const res = await fetch('/api/cart')
+      if (!res.ok) {
+        console.error('Failed to fetch cart:', res.status)
+        return
+      }
       const data = await res.json()
       if (data.items) {
         setItems(data.items)

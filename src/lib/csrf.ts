@@ -11,6 +11,11 @@ export function validateCsrf(req: NextRequest): boolean {
     return true
   }
 
+  // In non-production development environments, allow all local/dev/LAN requests
+  if (process.env.NODE_ENV !== 'production') {
+    return true
+  }
+
   const origin = req.headers.get('origin')
   const host = req.headers.get('x-forwarded-host') || req.headers.get('host')
 
@@ -54,11 +59,6 @@ export function validateCsrf(req: NextRequest): boolean {
     } catch {
       // invalid URL in referer
     }
-  }
-
-  // In non-production development environments, allow requests without strict origin/referer
-  if (process.env.NODE_ENV !== 'production') {
-    return true
   }
 
   return false

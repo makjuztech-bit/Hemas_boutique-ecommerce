@@ -123,12 +123,21 @@ export async function POST(req: NextRequest) {
 
     // Generate variants for each size (and feeding zip add-on if enabled)
     const variantsToCreate: any[] = []
-    const qtyPerVariant = Math.max(1, Math.round((Number(stockQuantity) || 10) / effectiveSizes.length))
+    const parsedStock = stockQuantity !== undefined && stockQuantity !== null && stockQuantity !== ''
+      ? Number(stockQuantity)
+      : 10
+    const safeStock = isNaN(parsedStock) || parsedStock < 0 ? 0 : parsedStock
+    const qtyPerVariant = effectiveSizes.length > 0 ? Math.floor(safeStock / effectiveSizes.length) : safeStock
 
-    effectiveSizes.forEach((sz, idx) => {
+    effectiveSizes.forEach((sz) => {
+      const cleanSz = sz.replace(/[^a-zA-Z0-9]/g, '')
+      const targetSku = effectiveSizes.length === 1 && cleanSz === 'FreeSize' && !effectiveFeedingZip
+        ? baseSku
+        : `${baseSku}-${cleanSz}`
+
       // Standard variant for this size
       variantsToCreate.push({
-        sku: `${baseSku}-${sz.replace(/[^a-zA-Z0-9]/g, '')}`,
+        sku: targetSku,
         size: sz,
         color: 'Standard',
         price: variantPricePaise,
@@ -139,7 +148,7 @@ export async function POST(req: NextRequest) {
       // Add-on variant with mother feeding zip if enabled
       if (effectiveFeedingZip) {
         variantsToCreate.push({
-          sku: `${baseSku}-${sz.replace(/[^a-zA-Z0-9]/g, '')}-ZIP`,
+          sku: `${baseSku}-${cleanSz}-ZIP`,
           size: sz,
           color: 'Feeding Zip',
           price: variantPricePaise + zipPricePaise,
@@ -148,6 +157,28 @@ export async function POST(req: NextRequest) {
         })
       }
     })
+
+    // Pre-check for base SKU or variant SKU collisions to prevent database crashes
+    const candidateSkus = variantsToCreate.map((v) => v.sku)
+    const existingVariant = await prisma.productVariant.findFirst({
+      where: {
+        OR: [
+          { sku: { in: candidateSkus } },
+          { sku: baseSku },
+          { sku: { startsWith: `${baseSku}-` } },
+        ],
+      },
+      select: { sku: true, product: { select: { name: true } } },
+    })
+
+    if (existingVariant) {
+      return NextResponse.json(
+        {
+          error: `SKU "${baseSku}" is already taken by "${existingVariant.product?.name || 'another product'}". Please choose a unique SKU.`,
+        },
+        { status: 400 }
+      )
+    }
 
     // Create product with all generated variants
     const product = await prisma.product.create({
@@ -179,13 +210,20 @@ export async function POST(req: NextRequest) {
     }
 
     for (let i = 0; i < Math.min(imageList.length, 4); i++) {
-      const mediaAsset = await prisma.mediaAsset.create({
-        data: {
-          publicId: `prod_${product.id}_${i}_${Date.now()}`,
-          secureUrl: imageList[i],
-          altText: `${name} - View ${i + 1}`,
-        },
+      const url = imageList[i]
+      let mediaAsset = await prisma.mediaAsset.findFirst({
+        where: { secureUrl: url },
       })
+
+      if (!mediaAsset) {
+        mediaAsset = await prisma.mediaAsset.create({
+          data: {
+            publicId: `prod_${product.id}_${i}_${Date.now()}`,
+            secureUrl: url,
+            altText: `${name} - View ${i + 1}`,
+          },
+        })
+      }
 
       await prisma.productMedia.create({
         data: {
@@ -211,6 +249,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, product: fullProduct })
   } catch (error: any) {
     console.error('Create product error:', error)
+    if (error?.code === 'P2002') {
+      return NextResponse.json(
+        { error: 'A product with this SKU or slug already exists. Please choose a unique SKU.' },
+        { status: 400 }
+      )
+    }
     return NextResponse.json(
       { error: error?.message === 'FORBIDDEN' ? 'Access denied' : (error?.message || 'Failed to create product') },
       { status: error?.message === 'FORBIDDEN' ? 403 : 500 }

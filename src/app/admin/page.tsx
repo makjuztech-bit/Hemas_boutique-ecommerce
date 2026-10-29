@@ -30,10 +30,14 @@ export default function AdminDashboardPage() {
     async function fetchStats() {
       try {
         const res = await fetch('/api/admin/stats')
+        if (!res.ok) {
+          console.error('Failed to fetch stats:', res.status)
+          return
+        }
         const data = await res.json()
         setStats(data)
       } catch (e) {
-        console.error(e)
+        console.error('Error fetching stats:', e)
       } finally {
         setLoading(false)
       }
