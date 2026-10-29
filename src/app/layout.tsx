@@ -44,6 +44,17 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icon.png", sizes: "512x512", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
   openGraph: {
     type: "website",
     locale: "en_IN",
@@ -54,10 +65,10 @@ export const metadata: Metadata = {
     siteName: "Hema's Boutique",
     images: [
       {
-        url: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Hema's Boutique Silk Ensemble",
+        alt: "Hema's Boutique - Women's Tex Valley",
       },
     ],
   },
@@ -65,7 +76,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Hema's Boutique | Royal Silk Sarees & Bridal Lehengas",
     description: "Exclusive Indian handcrafted luxury sarees and bridal couture.",
-    images: ["https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80"],
+    images: ["/og-image.png"],
   },
 };
 

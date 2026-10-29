@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "tsx --env-file=.env.local --test \"tests/**/*.test.ts\"",
     "admin:provision": "tsx scripts/provision-admin.ts",
+    "icons:generate": "node scripts/generate-brand-icons.js",
     "postinstall": "prisma generate || exit 0"
   },
   "dependencies": {
