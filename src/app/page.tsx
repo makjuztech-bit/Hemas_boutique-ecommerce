@@ -24,6 +24,8 @@ import {
   Minus
 } from 'lucide-react'
 import { parseProductDescription } from '@/lib/productMeta'
+import HeroSlider from '@/components/HeroSlider'
+import { DEFAULT_STOREFRONT_CONFIG, StorefrontConfig } from '@/lib/storefrontConfig'
 
 type Product = {
   id: string
@@ -64,6 +66,7 @@ export default function StorefrontPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [modalQuantity, setModalQuantity] = useState(1)
   const [addingToCart, setAddingToCart] = useState<string | null>(null)
+  const [storefrontConfig, setStorefrontConfig] = useState<StorefrontConfig>(DEFAULT_STOREFRONT_CONFIG)
 
   // Fetch current user, categories, and products
   useEffect(() => {
@@ -88,6 +91,17 @@ export default function StorefrontPage() {
         const cartData = await cartRes.json()
         if (cartData.items) {
           setCartCount(cartData.items.reduce((acc: number, item: any) => acc + item.quantity, 0))
+        }
+
+        // Fetch storefront banners & promotion settings
+        try {
+          const bannersRes = await fetch('/api/site-settings/banners')
+          const bannersData = await bannersRes.json()
+          if (bannersData.config) {
+            setStorefrontConfig(bannersData.config)
+          }
+        } catch (bannerErr) {
+          console.error('Error loading banner settings:', bannerErr)
         }
       } catch (e) {
         console.error('Error loading initial data:', e)
@@ -177,16 +191,31 @@ export default function StorefrontPage() {
         </div>
       )}
 
-      {/* Top Notification Bar */}
-      <div className="bg-[#8A1A38] text-white text-[11px] font-medium py-1.5 px-4 text-center tracking-wide flex items-center justify-center gap-4">
-        <span>✨ Welcome to Hema&apos;s Boutique — Kanchipuram Flagship Store</span>
-        <span className="hidden sm:inline opacity-75">|</span>
-        <a href="tel:+918056686443" className="hidden sm:inline hover:underline font-semibold text-amber-300">
-          📞 Boutique Phone: 8056686443
-        </a>
-        <span className="hidden md:inline opacity-75">|</span>
-        <span className="hidden md:inline">Free Domestic Shipping on Orders above ₹2,000</span>
-      </div>
+      {/* Top Announcement Bar */}
+      {storefrontConfig?.announcement?.enabled !== false && (
+        <div className="bg-gradient-to-r from-[#6D152D] via-[#8A1A38] to-[#6D152D] text-white text-[11px] sm:text-xs font-medium py-2 px-4 text-center tracking-wide flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 border-b border-[#A8284C]/40 shadow-xs">
+          <span className="flex items-center gap-1.5 font-medium">
+            {storefrontConfig?.announcement?.text || "✨ Grand Festive Edit: Special Discounts on Authentic Pure Kanchipuram Silks & Bridal Wear"}
+          </span>
+          {storefrontConfig?.announcement?.couponCode && (
+            <span className="inline-flex items-center gap-1 bg-amber-400 text-zinc-950 font-bold px-2 py-0.5 rounded text-[10px] tracking-wider uppercase shadow-xs">
+              Code: {storefrontConfig.announcement.couponCode}
+            </span>
+          )}
+          {storefrontConfig?.announcement?.phone && (
+            <>
+              <span className="hidden sm:inline opacity-60">|</span>
+              <a
+                href={`tel:+91${storefrontConfig.announcement.phone.replace(/[^0-9]/g, '')}`}
+                className="hidden sm:inline-flex items-center gap-1 hover:underline font-semibold text-amber-300"
+              >
+                <Phone className="w-3 h-3" />
+                <span>Boutique: {storefrontConfig.announcement.phone}</span>
+              </a>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Main Navigation */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#F0E4D8] shadow-xs">
@@ -270,54 +299,47 @@ export default function StorefrontPage() {
         </div>
       </header>
 
-      {/* Hero Banner */}
-      <section className="relative bg-gradient-to-r from-[#4A1222] via-[#631B30] to-[#360B18] text-white overflow-hidden py-14 px-4 sm:px-6 lg:px-8">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#FFF_1px,transparent_1px)] [background-size:16px_16px]"></div>
-        <div className="max-w-7xl mx-auto relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="max-w-xl text-center md:text-left">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 text-xs font-medium mb-3 border border-amber-400/30">
-              <Sparkles className="w-3.5 h-3.5" /> 2026 Festive &amp; Bridal Collection
-            </span>
-            <h2 className="font-serif text-3xl sm:text-5xl font-bold tracking-tight text-white leading-tight">
-              Timeless Elegance, Pure Craftsmanship
-            </h2>
-            <p className="mt-3 text-sm sm:text-base text-rose-100 font-light leading-relaxed">
-              Explore authentic Kanchipuram silk, Banarasi zari sarees, and designer bridal sets curated specially for discerning occasions.
-            </p>
-            <div className="mt-6 flex flex-wrap items-center justify-center md:justify-start gap-4">
+      {/* Dynamic Hero Banner Slideshow */}
+      <HeroSlider
+        slides={storefrontConfig?.heroSlides || DEFAULT_STOREFRONT_CONFIG.heroSlides}
+        onSelectCategory={(slug) => setSelectedCategory(slug)}
+      />
+
+      {/* Main Catalog Area */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* Collection Spotlight Header */}
+        {storefrontConfig?.spotlight?.enabled !== false && (
+          <div className="mb-8 p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#FAF4EC] via-white to-[#FAF4EC] border border-[#EADBCE] shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="max-w-2xl">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#8A1A38]/10 text-[#8A1A38] text-xs font-bold uppercase tracking-wider mb-2">
+                <Sparkles className="w-3.5 h-3.5 text-[#8A1A38]" />
+                {storefrontConfig?.spotlight?.tag || 'Artisanal Spotlight'}
+              </span>
+              <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#3B1522]">
+                {storefrontConfig?.spotlight?.title || 'New Festive Arrivals'}
+              </h2>
+              <p className="mt-1.5 text-xs sm:text-sm text-[#7A6458] leading-relaxed">
+                {storefrontConfig?.spotlight?.subtitle || 'Explore our latest boutique masterpieces, woven to perfection for every celebration.'}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
               <button
                 onClick={() => setSelectedCategory('silk-sarees')}
-                className="bg-gradient-to-r from-amber-400 to-amber-500 text-black px-6 py-2.5 rounded-full font-semibold text-xs uppercase tracking-wider hover:shadow-lg hover:shadow-amber-500/25 transition-all cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-[#8A1A38] text-white hover:bg-[#6D152D] transition-colors shadow-xs cursor-pointer flex items-center gap-1.5"
               >
-                Shop Pure Silks
+                <span>Pure Silk Sarees</span>
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => setSelectedCategory('bridal-lehengas')}
-                className="bg-white/10 hover:bg-white/20 text-white border border-white/30 px-6 py-2.5 rounded-full font-medium text-xs uppercase tracking-wider transition-all cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-white text-[#8A1A38] border border-[#8A1A38]/30 hover:bg-[#FAF4EC] transition-colors cursor-pointer"
               >
                 Bridal Lehengas
               </button>
             </div>
           </div>
-
-          {/* Banner Badges */}
-          <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
-            <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-center">
-              <ShieldCheck className="w-6 h-6 text-amber-300 mx-auto mb-1.5" />
-              <h4 className="text-xs font-bold text-white">100% Authentic</h4>
-              <p className="text-[10px] text-rose-200 mt-0.5">Silk Mark Certified Weaves</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-center">
-              <Clock className="w-6 h-6 text-amber-300 mx-auto mb-1.5" />
-              <h4 className="text-xs font-bold text-white">Express Delivery</h4>
-              <p className="text-[10px] text-rose-200 mt-0.5">Dispatched within 24h</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Main Catalog Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        )}
         {/* Category Pills Bar */}
         <div className="flex items-center justify-between gap-4 border-b border-[#EADBD0] pb-4 mb-8 overflow-x-auto no-scrollbar">
           <div className="flex items-center gap-2 min-w-max">
