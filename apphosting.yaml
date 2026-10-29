@@ -30,7 +30,7 @@ env:
       - RUNTIME
 
   - variable: NEXT_PUBLIC_RAZORPAY_KEY_ID
-    value: "rzp_live_Tng3xefDHwOl7w"
+    value: "rzp_live_TtdVNEIw46pewT"
     availability:
       - BUILD
       - RUNTIME
