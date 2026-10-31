@@ -10,7 +10,10 @@ import {
   Sparkles,
   Calendar,
   User,
-  MapPin
+  MapPin,
+  ExternalLink,
+  Printer,
+  Loader2
 } from 'lucide-react'
 
 type OrderItem = {
@@ -36,6 +39,8 @@ type Order = {
   paymentStatus: string
   createdAt: string
   shippingAddress: string
+  courierName?: string | null
+  trackingNumber?: string | null
   user: {
     firstName: string | null
     lastName: string | null
@@ -49,6 +54,8 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [shippingId, setShippingId] = useState<string | null>(null)
+  const [actionNotice, setActionNotice] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
   const fetchOrders = async () => {
     try {
@@ -88,6 +95,40 @@ export default function AdminOrdersPage() {
     }
   }
 
+  const handleShiprocketDispatch = async (orderId: string) => {
+    setShippingId(orderId)
+    setActionNotice(null)
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}/ship`, {
+        method: 'POST',
+      })
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to dispatch order with Shiprocket')
+      }
+
+      setActionNotice({
+        type: 'success',
+        message: `Shipment booked successfully! Courier: ${data.courierName || 'Shiprocket Partner'}, AWB: ${data.awbCode}`,
+      })
+
+      if (data.labelUrl) {
+        window.open(data.labelUrl, '_blank')
+      }
+
+      await fetchOrders()
+    } catch (err: any) {
+      console.error(err)
+      setActionNotice({
+        type: 'error',
+        message: err.message || 'Error communicating with Shiprocket API',
+      })
+    } finally {
+      setShippingId(null)
+    }
+  }
+
   const formatPrice = (paise: number) => {
     return `₹${(paise / 100).toLocaleString('en-IN')}`
   }
@@ -102,6 +143,24 @@ export default function AdminOrdersPage() {
           Review placed orders, verify delivery details, and update dispatch/fulfillment stages.
         </p>
       </div>
+
+      {actionNotice && (
+        <div
+          className={`p-4 rounded-xl border text-xs flex items-center justify-between ${
+            actionNotice.type === 'success'
+              ? 'bg-emerald-950/40 border-emerald-800 text-emerald-300'
+              : 'bg-rose-950/40 border-rose-800 text-rose-300'
+          }`}
+        >
+          <span>{actionNotice.message}</span>
+          <button
+            onClick={() => setActionNotice(null)}
+            className="text-zinc-400 hover:text-white ml-3"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className="py-20 text-center text-xs text-zinc-500">Loading orders...</div>
@@ -199,6 +258,56 @@ export default function AdminOrdersPage() {
                       })}
                     </div>
                   </div>
+                </div>
+
+                {/* Logistics & Shiprocket Dispatch Bar */}
+                <div className="mt-4 pt-4 border-t border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+                  {order.trackingNumber ? (
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 text-amber-300 border border-amber-500/30 rounded-xl font-medium">
+                        <Truck className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Courier: <strong>{order.courierName || 'Shiprocket Partner'}</strong></span>
+                      </span>
+                      <span className="text-zinc-400 font-mono">
+                        AWB: <strong className="text-zinc-200">{order.trackingNumber}</strong>
+                      </span>
+                      <a
+                        href={`https://shiprocket.co/tracking/${order.trackingNumber}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-amber-400 hover:text-amber-300 underline font-medium"
+                      >
+                        <span>Live Tracking</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="text-zinc-500 flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>Not dispatched with courier yet</span>
+                    </div>
+                  )}
+
+                  {!order.trackingNumber && order.status !== 'CANCELLED' && (
+                    <button
+                      type="button"
+                      disabled={shippingId === order.id}
+                      onClick={() => handleShiprocketDispatch(order.id)}
+                      className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-semibold text-xs bg-amber-500 text-zinc-950 hover:bg-amber-400 disabled:opacity-50 transition-colors shadow-xs"
+                    >
+                      {shippingId === order.id ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Booking Courier...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Truck className="w-3.5 h-3.5" />
+                          <span>Dispatch via Shiprocket</span>
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             )

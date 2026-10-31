@@ -39,6 +39,8 @@ type Order = {
   paymentStatus: string
   createdAt: string
   shippingAddress: string
+  courierName?: string | null
+  trackingNumber?: string | null
   items: OrderItem[]
 }
 
@@ -238,6 +240,34 @@ export default function CustomerOrdersPage() {
                         <span className="font-semibold text-zinc-900">Delivering to: </span>
                         {parsedAddress.fullName}, {parsedAddress.street}, {parsedAddress.city},{' '}
                         {parsedAddress.state} - {parsedAddress.postalCode} (Ph: {parsedAddress.phone})
+                      </div>
+                    )}
+
+                    {order.trackingNumber && (
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 p-3.5 bg-amber-50/70 rounded-2xl border border-amber-200/80 text-xs text-amber-950">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center text-amber-800">
+                            <Truck className="w-3.5 h-3.5" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-amber-900">
+                              Dispatched via {order.courierName || 'Shiprocket Partner'}
+                            </p>
+                            <p className="text-[11px] text-amber-800/80 font-mono">
+                              AWB: {order.trackingNumber}
+                            </p>
+                          </div>
+                        </div>
+
+                        <a
+                          href={`https://shiprocket.co/tracking/${order.trackingNumber}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#8A1A38] text-white rounded-xl font-medium text-[11px] shadow-xs hover:bg-[#6D152D] transition-colors"
+                        >
+                          <span>Live Tracking</span>
+                          <span className="text-xs">↗</span>
+                        </a>
                       </div>
                     )}
                   </div>
