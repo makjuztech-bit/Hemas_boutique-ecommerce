@@ -72,11 +72,11 @@ export default function Footer() {
             </li>
             <li>
               <a
-                href="mailto:contact@hemasboutique.com"
+                href="mailto:hemasethnicwear@gmail.com"
                 className="flex items-center gap-2.5 hover:text-white transition-colors"
               >
                 <Mail className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span>contact@hemasboutique.com</span>
+                <span>hemasethnicwear@gmail.com</span>
               </a>
             </li>
             <li className="flex items-start gap-2.5 text-[11px] text-[#A68F81] pt-1">
@@ -86,10 +86,10 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Col 4: Quick Navigation Links */}
+        {/* Col 4: Quick Navigation & Legal Links */}
         <div>
           <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
-            Quick Links
+            Boutique &amp; Policies
           </h4>
           <ul className="space-y-2 text-xs text-[#C9B4A7]">
             <li>
@@ -98,18 +98,33 @@ export default function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/cart" className="hover:text-white transition-colors">
-                Shopping Bag
-              </Link>
-            </li>
-            <li>
               <Link href="/orders" className="hover:text-white transition-colors">
                 Track My Orders
               </Link>
             </li>
             <li>
-              <Link href="/admin" className="hover:text-amber-400 transition-colors">
-                Admin Panel Portal
+              <Link href="/terms" className="hover:text-amber-400 transition-colors">
+                Terms of Service
+              </Link>
+            </li>
+            <li>
+              <Link href="/privacy-policy" className="hover:text-amber-400 transition-colors">
+                Privacy Policy
+              </Link>
+            </li>
+            <li>
+              <Link href="/refund-policy" className="hover:text-amber-400 transition-colors">
+                Refund &amp; Return Policy
+              </Link>
+            </li>
+            <li>
+              <Link href="/shipping-policy" className="hover:text-amber-400 transition-colors">
+                Shipping &amp; Delivery Policy
+              </Link>
+            </li>
+            <li className="pt-1">
+              <Link href="/admin" className="text-zinc-500 hover:text-amber-400 transition-colors text-[11px]">
+                Staff &amp; Admin Portal
               </Link>
             </li>
           </ul>
@@ -121,14 +136,31 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto mt-10 pt-6 border-t border-[#422933] flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#A68F81] gap-3">
+      <div className="max-w-7xl mx-auto mt-10 pt-6 border-t border-[#422933] flex flex-col md:flex-row items-center justify-between text-[11px] text-[#A68F81] gap-4">
         <p>
           &copy; {currentYear} Hema&apos;s Boutique. Crafted with artisanal luxury and love.
         </p>
+        <div className="flex flex-wrap items-center justify-center gap-4 text-[#C9B4A7]">
+          <Link href="/terms" className="hover:text-white underline-offset-2 hover:underline">
+            Terms
+          </Link>
+          <span>&bull;</span>
+          <Link href="/privacy-policy" className="hover:text-white underline-offset-2 hover:underline">
+            Privacy Policy
+          </Link>
+          <span>&bull;</span>
+          <Link href="/refund-policy" className="hover:text-white underline-offset-2 hover:underline">
+            Refunds &amp; Returns
+          </Link>
+          <span>&bull;</span>
+          <Link href="/shipping-policy" className="hover:text-white underline-offset-2 hover:underline">
+            Shipping Policy
+          </Link>
+        </div>
         <p className="flex items-center gap-1.5">
           <span>Kanchipuram Silk Heritage</span>
           <span>&bull;</span>
-          <span>Handcrafted in Tamil Nadu</span>
+          <span>Tamil Nadu, India</span>
         </p>
       </div>
     </footer>
