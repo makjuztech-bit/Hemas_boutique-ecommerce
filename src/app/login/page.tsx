@@ -237,7 +237,7 @@ function CustomerLoginForm() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center flex flex-col items-center">
         <BrandLogo size="lg" variant="light" href="/" subtitle="Women's Tex Valley" />
         <p className="mt-3 text-xs text-[#7A6458]">
-          Exclusive Handcrafted Sarees, Bridal Lehengas &amp; Ethnic Couture
+          Designer Kurtis, Feeding Wear &amp; Contemporary Ethnic Fashion
         </p>
       </div>
 

@@ -891,7 +891,7 @@ export default function AdminProductsPage() {
                   required
                   value={addForm.name}
                   onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
-                  placeholder="e.g. Royal Maroon Velvet Bridal Saree / Feeding Kurta"
+                  placeholder="e.g. Royal Maroon Embroidered Anarkali / Feeding Kurta"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-amber-500 text-sm"
                 />
               </div>

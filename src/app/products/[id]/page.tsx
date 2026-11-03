@@ -655,7 +655,7 @@ export default function ProductDetailPage() {
               <h3 className="font-serif text-lg font-bold text-[#3B1522]">Boutique Size Chart (Inches)</h3>
             </div>
             <p className="text-xs text-[#7A6458] mb-5">
-              Standard Indian ethnic sizing chart for sarees, lehengas, and maternity feeding kurtis.
+              Standard Indian ethnic sizing chart for designer kurtis, ethnic suits, and maternity feeding wear.
             </p>
 
             <div className="overflow-x-auto border border-[#EADBCE] rounded-2xl">

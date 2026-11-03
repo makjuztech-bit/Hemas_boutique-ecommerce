@@ -307,7 +307,7 @@ export default function AdminCategoriesPage() {
                       setCreateSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''))
                     }
                   }}
-                  placeholder="e.g. Bridal Lehengas"
+                  placeholder="e.g. Designer Kurtis"
                   className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
               </div>
@@ -320,7 +320,7 @@ export default function AdminCategoriesPage() {
                   type="text"
                   value={createSlug}
                   onChange={(e) => setCreateSlug(e.target.value)}
-                  placeholder="e.g. bridal-lehengas"
+                  placeholder="e.g. designer-kurtis"
                   className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-xl text-sm text-white font-mono focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
                 <span className="text-[10px] text-zinc-500 mt-1 block">

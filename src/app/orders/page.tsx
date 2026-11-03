@@ -157,7 +157,7 @@ export default function CustomerOrdersPage() {
             <Package className="w-16 h-16 text-zinc-300 mx-auto mb-4" />
             <h2 className="font-serif text-xl font-bold text-[#3B1522]">No orders placed yet</h2>
             <p className="text-xs text-[#7A6458] mt-1 mb-6">
-              When you place an order for our sarees or lehengas, it will show up here.
+              When you place an order for our kurtis or ethnic wear, it will show up here.
             </p>
             <Link
               href="/"

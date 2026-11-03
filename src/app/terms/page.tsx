@@ -6,7 +6,7 @@ import { FileText, ArrowLeft, Mail, Phone, MapPin } from 'lucide-react'
 
 export const metadata = {
   title: "Terms of Service | Hema's Boutique",
-  description: "Terms and Conditions for purchasing women's ethnic wear, Kanchipuram silk sarees, and designer apparel at Hema's Boutique.",
+  description: "Terms and Conditions for purchasing women's designer kurtis, maternity feeding wear, and ethnic apparel at Hema's Boutique.",
 }
 
 export default function TermsPage() {
@@ -53,20 +53,20 @@ export default function TermsPage() {
               Welcome to <strong>Hema&apos;s Boutique</strong> (operating under <em>hemasethnicwear.com</em>). By accessing, browsing, or purchasing through our website or physical showroom, you agree to comply with and be bound by the following Terms of Service.
             </p>
             <p>
-              Hema&apos;s Boutique specializes in authentic pure Kanchipuram silk sarees, bespoke bridal couture, designer lehengas, kurtis, maternity feeding zip wear, and handcrafted women&apos;s ethnic wear. We reserve the right to revise or update these terms at any time without prior notice.
+              Hema&apos;s Boutique specializes in designer kurtis, festive anarkalis, maternity feeding zip wear, ethnic sets, and handcrafted women&apos;s ethnic wear. We reserve the right to revise or update these terms at any time without prior notice.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="font-serif text-lg font-bold text-[#3B1522] border-b border-[#F0E4D8] pb-2">
-              2. Handloom Authenticity &amp; Product Representation
+              2. Product Craftsmanship &amp; Representation
             </h2>
             <ul className="list-disc pl-5 space-y-2">
               <li>
-                <strong>Handcrafted &amp; Handloom Characteristics:</strong> Many of our ensembles are hand-woven by master weavers in Kanchipuram. Subtle variations in yarn texture, zari luster, motif alignment, or handloom slubs are the natural hallmark of genuine handcrafted silk and are not considered defects.
+                <strong>Craftsmanship Characteristics:</strong> Our ethnic kurtis and feeding wear collections are tailored with meticulous attention to detail. Subtle natural variations in fabric texture, print placement, or artisanal embroidery are the hallmark of boutique craftsmanship and are not considered defects.
               </li>
               <li>
-                <strong>Color Variations:</strong> We take meticulous care to capture accurate colors in natural lighting. However, slight variations in shade may occur depending on individual mobile or monitor screen resolutions and silk fiber light reflection.
+                <strong>Color Variations:</strong> We take meticulous care to capture accurate colors in natural lighting. However, slight variations in shade may occur depending on individual mobile or monitor screen resolutions and fabric light reflection.
               </li>
               <li>
                 <strong>Sizing &amp; Fitting:</strong> Standard size guides are provided on product pages. Please review measurements carefully prior to placing your order.
@@ -83,7 +83,7 @@ export default function TermsPage() {
                 All prices are listed in Indian Rupees (INR) and are inclusive of applicable GST unless explicitly stated otherwise.
               </li>
               <li>
-                Prices are subject to revision based on raw silk and pure silver/gold zari market fluctuations.
+                Prices are subject to revision based on seasonal collections and fabric market fluctuations.
               </li>
               <li>
                 Payments must be completed online prior to dispatch via our secure payment gateway partner, <strong>Razorpay</strong> (supporting UPI, Credit/Debit Cards, Net Banking, and Wallets). We do not accept Cash on Delivery (COD).

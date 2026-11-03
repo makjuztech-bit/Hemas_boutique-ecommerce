@@ -20,19 +20,19 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "Hema's Boutique | Luxury Handcrafted Sarees & Bridal Lehengas",
+    default: "Hema's Boutique | Designer Kurtis, Feeding Wear & Ethnic Fashion",
     template: "%s | Hema's Boutique",
   },
   description:
-    "Discover authentic handcrafted Kanchipuram silk sarees, Banarasi georgettes, royal bridal lehengas, and bespoke festive ethnic couture at Hema's Boutique. Flagship store at Vallal Pachayappan Street, Kanchipuram.",
+    "Discover authentic handcrafted designer kurtis, maternity feeding wear, festive anarkalis, and elegant ethnic fashion at Hema's Boutique. Flagship store at Vallal Pachayappan Street, Kanchipuram.",
   keywords: [
     "Hema's Boutique",
-    "Kanchipuram Silk Sarees",
-    "Bridal Lehenga",
-    "Banarasi Sarees",
+    "Designer Kurtis",
+    "Feeding Kurtis",
+    "Maternity Wear",
     "Indian Ethnic Wear",
-    "Handloom Sarees",
-    "Bridal Couture",
+    "Anarkali Suits",
+    "Festive Ethnic Wear",
     "Kanchipuram Boutique",
     "Vallal Pachayappan Street",
     "Women's Tex Valley",
@@ -59,9 +59,9 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_IN",
     url: "/",
-    title: "Hema's Boutique | Royal Silk Sarees & Bridal Lehengas",
+    title: "Hema's Boutique | Designer Kurtis & Feeding Wear",
     description:
-      "Exclusive Indian handcrafted luxury sarees and bridal couture. Woven with pure zari and timeless craftsmanship.",
+      "Exclusive Indian handcrafted designer kurtis, maternity feeding wear, and contemporary ethnic fashion.",
     siteName: "Hema's Boutique",
     images: [
       {
@@ -74,8 +74,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Hema's Boutique | Royal Silk Sarees & Bridal Lehengas",
-    description: "Exclusive Indian handcrafted luxury sarees and bridal couture.",
+    title: "Hema's Boutique | Designer Kurtis & Feeding Wear",
+    description: "Exclusive Indian handcrafted designer kurtis, maternity feeding wear, and contemporary ethnic fashion.",
     images: ["/og-image.png"],
   },
 };

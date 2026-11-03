@@ -46,7 +46,7 @@ export default function RefundPolicyPage() {
 
         <div className="bg-white rounded-3xl border border-[#EADBCE] p-6 sm:p-10 shadow-xs space-y-8 text-sm leading-relaxed text-[#4A3B32]">
           <p>
-            At <strong>Hema&apos;s Boutique</strong>, each saree, lehenga, kurti, and ethnic ensemble undergoes multi-point hand inspection prior to dispatch. However, in the rare event of a genuine defect or transit issue, returns and replacements are accommodated strictly under the terms outlined below.
+            At <strong>Hema&apos;s Boutique</strong>, each designer kurti, feeding wear ensemble, and ethnic garment undergoes multi-point hand inspection prior to dispatch. However, in the rare event of a genuine defect or transit issue, returns and replacements are accommodated strictly under the terms outlined below.
           </p>
 
           {/* Mandatory Unboxing Video Alert */}
@@ -112,7 +112,7 @@ export default function RefundPolicyPage() {
                 </li>
                 <li className="flex items-start gap-1.5">
                   <span className="text-rose-600 font-bold">✕</span>
-                  <span><strong>Color / Handloom Nuances:</strong> Slight 5-10% natural shade variation due to photographic lighting or handloom silk yarn luster.</span>
+                  <span><strong>Color Nuances:</strong> Slight 5-10% natural shade variation due to photographic lighting or digital display screens.</span>
                 </li>
                 <li className="flex items-start gap-1.5">
                   <span className="text-rose-600 font-bold">✕</span>
@@ -120,7 +120,7 @@ export default function RefundPolicyPage() {
                 </li>
                 <li className="flex items-start gap-1.5">
                   <span className="text-rose-600 font-bold">✕</span>
-                  <span><strong>Customized Couture:</strong> Sarees with fall/pico, attached tassels, or customized stitched blouses.</span>
+                  <span><strong>Custom Tailored Apparel:</strong> Garments altered or tailored to custom body measurements.</span>
                 </li>
                 <li className="flex items-start gap-1.5">
                   <span className="text-rose-600 font-bold">✕</span>
@@ -135,7 +135,7 @@ export default function RefundPolicyPage() {
               Return Request Timeline
             </h2>
             <p>
-              Return requests must be initiated within <strong>48 hours of parcel delivery</strong> as recorded by the courier tracking status. Requests received after 48 hours cannot be processed due to the delicate nature of pure silk and artisanal festive wear.
+              Return requests must be initiated within <strong>48 hours of parcel delivery</strong> as recorded by the courier tracking status. Requests received after 48 hours cannot be processed due to the seasonal and festive nature of boutique apparel.
             </p>
           </section>
 
@@ -145,8 +145,8 @@ export default function RefundPolicyPage() {
             </h2>
             <ul className="list-disc pl-5 space-y-2">
               <li>The garment must be completely unused, unworn, unwashed, and free of any odor, makeup, or perfume.</li>
-              <li>All original boutique brand tags, silk mark tags, folds, and plastic sleeves must remain intact and attached.</li>
-              <li>The item must be repacked securely in the original box to prevent transit damage during the return journey.</li>
+              <li>All original boutique brand tags, size tags, folds, and plastic packaging must remain intact and attached.</li>
+              <li>The item must be repacked securely in the original box/bag to prevent transit damage during the return journey.</li>
             </ul>
           </section>
 

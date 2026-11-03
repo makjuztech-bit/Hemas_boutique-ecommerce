@@ -57,13 +57,13 @@ export default function ShippingPolicyPage() {
               </div>
               <ul className="text-xs space-y-1.5 text-[#4A3B32]">
                 <li>
-                  <strong>Ready-to-Ship / Unstitched Sarees:</strong> Dispatched within <strong>1 to 2 business days</strong>.
+                  <strong>Ready-to-Ship Kurtis &amp; Feeding Wear:</strong> Dispatched within <strong>1 to 2 business days</strong>.
                 </li>
                 <li>
-                  <strong>With Fall &amp; Pico / Tassels:</strong> Additional 24 hours required for artisanal finishing.
+                  <strong>Ethnic Sets &amp; Anarkalis:</strong> Dispatched within <strong>2 to 3 business days</strong>.
                 </li>
                 <li>
-                  <strong>Custom Tailored Blouses:</strong> Dispatched within <strong>3 to 5 business days</strong> following measurement confirmation.
+                  <strong>Custom Tailored Orders:</strong> Dispatched within <strong>3 to 5 business days</strong> following measurement confirmation.
                 </li>
               </ul>
             </div>

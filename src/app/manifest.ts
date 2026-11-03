@@ -2,9 +2,9 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Hema's Boutique | Luxury Handcrafted Sarees",
+    name: "Hema's Boutique | Women's Ethnic Wear & Designer Kurtis",
     short_name: "Hema's Boutique",
-    description: "Authentic handcrafted Kanchipuram silk sarees, bridal couture, and bespoke ethnic wear.",
+    description: "Authentic designer kurtis, maternity feeding wear, and contemporary ethnic fashion.",
     start_url: '/',
     display: 'standalone',
     background_color: '#FDFBF7',

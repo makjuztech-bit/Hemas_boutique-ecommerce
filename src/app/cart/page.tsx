@@ -151,7 +151,7 @@ export default function CartPage() {
             <ShoppingBag className="w-16 h-16 text-zinc-300 mx-auto mb-4" />
             <h2 className="font-serif text-xl font-bold text-[#3B1522]">Your bag is empty</h2>
             <p className="text-xs text-[#7A6458] mt-1 mb-6">
-              Discover our handcrafted silk sarees and royal couture to fill your bag.
+              Discover our designer kurtis, feeding wear, and ethnic ensembles to fill your bag.
             </p>
             <Link
               href="/"

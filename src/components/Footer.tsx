@@ -13,11 +13,11 @@ export default function Footer() {
         <div className="space-y-4">
           <BrandLogo size="md" variant="dark" href="/" subtitle="Women's Tex Valley" />
           <p className="text-xs text-[#C9B4A7] leading-relaxed">
-            Celebrating heritage Indian handloom craftsmanship, pure Kanchipuram silk sarees, bespoke bridal couture, and maternity feeding zip collections.
+            Celebrating contemporary Indian craftsmanship, designer kurtis, festive anarkalis, ethnic suits, and signature maternity feeding zip collections.
           </p>
           <div className="pt-2 flex items-center gap-2 text-[11px] text-amber-400 font-medium">
             <Sparkles className="w-3.5 h-3.5 shrink-0" />
-            <span>Pure Zari &amp; Handloom Certified</span>
+            <span>Premium Fabric &amp; Tailoring Quality</span>
           </div>
         </div>
 
@@ -158,7 +158,7 @@ export default function Footer() {
           </Link>
         </div>
         <p className="flex items-center gap-1.5">
-          <span>Kanchipuram Silk Heritage</span>
+          <span>Women&apos;s Ethnic Fashion</span>
           <span>&bull;</span>
           <span>Tamil Nadu, India</span>
         </p>

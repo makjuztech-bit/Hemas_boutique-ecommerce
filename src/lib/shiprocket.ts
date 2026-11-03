@@ -126,7 +126,7 @@ export async function createShiprocketOrder(order: {
     length: 30, // Standard packaging box in cm
     breadth: 25,
     height: 5,
-    weight: 0.8, // Default 800g for boutique saree/dress package
+    weight: 0.5, // Default 500g for boutique kurti/dress package
   }
 
   const res = await fetch('https://apiv2.shiprocket.in/v1/external/orders/create/adhoc', {

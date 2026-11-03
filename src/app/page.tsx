@@ -230,7 +230,7 @@ export default function StorefrontPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search Silk Sarees, Lehengas, Kurtis..."
+                placeholder="Search Designer Kurtis, Feeding Wear, Ethnic Suits..."
                 className="w-full pl-10 pr-4 py-2 text-sm bg-[#FAF6F0] border border-[#E8DACD] rounded-full focus:outline-none focus:ring-2 focus:ring-[#8A1A38] focus:bg-white transition-all placeholder-[#9E8B82]"
               />
               <Search className="w-4 h-4 text-[#9E8B82] absolute left-3.5 top-3" />
@@ -325,17 +325,17 @@ export default function StorefrontPage() {
 
             <div className="flex flex-wrap items-center gap-3">
               <button
-                onClick={() => setSelectedCategory('silk-sarees')}
+                onClick={() => setSelectedCategory('designer-kurtis')}
                 className="px-4 py-2 rounded-xl text-xs font-bold bg-[#8A1A38] text-white hover:bg-[#6D152D] transition-colors shadow-xs cursor-pointer flex items-center gap-1.5"
               >
-                <span>Pure Silk Sarees</span>
+                <span>Designer Kurtis</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
               <button
-                onClick={() => setSelectedCategory('bridal-lehengas')}
+                onClick={() => setSelectedCategory('maternity-feeding-wear')}
                 className="px-4 py-2 rounded-xl text-xs font-bold bg-white text-[#8A1A38] border border-[#8A1A38]/30 hover:bg-[#FAF4EC] transition-colors cursor-pointer"
               >
-                Bridal Lehengas
+                Feeding Zip Wear
               </button>
             </div>
           </div>

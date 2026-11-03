@@ -391,7 +391,7 @@ export default function AdminStorefrontBannersPage() {
                             required
                             value={slide.title}
                             onChange={(e) => handleUpdateSlideField(idx, 'title', e.target.value)}
-                            placeholder="e.g. Timeless Kanchipuram Silk Sarees"
+                            placeholder="e.g. Designer Festive Kurtis"
                             className="w-full px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white font-bold focus:outline-none focus:border-amber-500 text-sm"
                           />
                         </div>
@@ -419,7 +419,7 @@ export default function AdminStorefrontBannersPage() {
                             type="text"
                             value={slide.buttonText}
                             onChange={(e) => handleUpdateSlideField(idx, 'buttonText', e.target.value)}
-                            placeholder="e.g. Shop Pure Silks"
+                            placeholder="e.g. Shop Designer Kurtis"
                             className="w-full px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white font-semibold focus:outline-none focus:border-amber-500"
                           />
                         </div>
@@ -432,7 +432,7 @@ export default function AdminStorefrontBannersPage() {
                             type="text"
                             value={slide.buttonLink}
                             onChange={(e) => handleUpdateSlideField(idx, 'buttonLink', e.target.value)}
-                            placeholder="/products?category=silk-sarees"
+                            placeholder="/products?category=designer-kurtis"
                             className="w-full px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white font-mono focus:outline-none focus:border-amber-500"
                           />
                         </div>

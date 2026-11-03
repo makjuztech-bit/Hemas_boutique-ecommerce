@@ -81,16 +81,16 @@ export default function HeroSlider({
                 isCurrent ? 'scale-105' : 'scale-100'
               }`}
             />
-            {/* Dark & Brand Burgundy Gradient Overlay for premium luxury legibility */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-[#4A1222]/80 to-transparent"></div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/30"></div>
+            {/* Subtle Gradient Overlay: Soft and clean so the boutique images remain vivid and clearly visible */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
           </div>
         )
       })}
 
       {/* Content Overlay */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-20 w-full flex flex-col md:flex-row items-center justify-between gap-10">
-        <div className="max-w-2xl text-center md:text-left space-y-4">
+        <div className="max-w-xl text-center md:text-left space-y-4 bg-black/35 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl">
           {/* Badge */}
           {currentSlide.badge && (
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-400/25 to-amber-600/20 text-amber-300 text-xs font-semibold tracking-wide border border-amber-400/40 shadow-sm backdrop-blur-md">
@@ -100,12 +100,12 @@ export default function HeroSlider({
           )}
 
           {/* Heading */}
-          <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-tight drop-shadow-md">
+          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight drop-shadow-md">
             {currentSlide.title}
           </h1>
 
           {/* Subtitle */}
-          <p className="text-sm sm:text-base lg:text-lg text-rose-100/90 font-light leading-relaxed max-w-xl">
+          <p className="text-sm sm:text-base text-rose-100/90 font-light leading-relaxed">
             {currentSlide.subtitle}
           </p>
 
