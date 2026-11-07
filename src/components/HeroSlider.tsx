@@ -59,11 +59,11 @@ export default function HeroSlider({
 
   return (
     <section
-      className="relative overflow-hidden w-full min-h-[460px] sm:min-h-[520px] md:min-h-[580px] flex items-center bg-zinc-950 text-white select-none"
+      className="relative overflow-hidden w-full min-h-[480px] sm:min-h-[540px] md:min-h-[620px] flex items-end bg-zinc-950 text-white select-none"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Background Images with smooth fade/scale transition */}
+      {/* Background Images: Full screen, completely unobstructed in the middle & top */}
       {activeSlides.map((slide, idx) => {
         const isCurrent = idx === currentIndex
         return (
@@ -73,7 +73,7 @@ export default function HeroSlider({
               isCurrent ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
             }`}
           >
-            {/* Background Image */}
+            {/* Background Image: Bright & 100% visible */}
             <img
               src={slide.imageUrl}
               alt={slide.title}
@@ -81,89 +81,118 @@ export default function HeroSlider({
                 isCurrent ? 'scale-105' : 'scale-100'
               }`}
             />
-            {/* Subtle Gradient Overlay: Soft and clean so the boutique images remain vivid and clearly visible */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent"></div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
+            {/* Soft top gradient only to blend with header */}
+            <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-black/40 to-transparent"></div>
           </div>
         )
       })}
 
-      {/* Content Overlay */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-20 w-full flex flex-col md:flex-row items-center justify-between gap-10">
-        <div className="max-w-xl text-center md:text-left space-y-4 bg-black/35 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl">
-          {/* Badge */}
-          {currentSlide.badge && (
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-400/25 to-amber-600/20 text-amber-300 text-xs font-semibold tracking-wide border border-amber-400/40 shadow-sm backdrop-blur-md">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-              <span>{currentSlide.badge}</span>
-            </div>
-          )}
-
-          {/* Heading */}
-          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight drop-shadow-md">
-            {currentSlide.title}
-          </h1>
-
-          {/* Subtitle */}
-          <p className="text-sm sm:text-base text-rose-100/90 font-light leading-relaxed">
-            {currentSlide.subtitle}
-          </p>
-
-          {/* CTA Actions */}
-          <div className="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-4">
-            {currentSlide.buttonLink?.startsWith('/') && !currentSlide.buttonLink.includes('?') ? (
-              <Link
-                href={currentSlide.buttonLink}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-black px-7 py-3 rounded-full font-bold text-xs uppercase tracking-wider hover:shadow-xl hover:shadow-amber-500/30 hover:scale-105 transition-all cursor-pointer"
-              >
-                <span>{currentSlide.buttonText || 'Explore Creations'}</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            ) : (
-              <a
-                href={currentSlide.buttonLink || '#catalog'}
-                onClick={(e) => {
-                  if (currentSlide.buttonLink?.includes('category=')) {
-                    const catSlug = currentSlide.buttonLink.split('category=')[1]
-                    if (catSlug && onSelectCategory) {
-                      e.preventDefault()
-                      onSelectCategory(catSlug)
-                      document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' })
-                    }
-                  }
-                }}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-black px-7 py-3 rounded-full font-bold text-xs uppercase tracking-wider hover:shadow-xl hover:shadow-amber-500/30 hover:scale-105 transition-all cursor-pointer"
-              >
-                <span>{currentSlide.buttonText || 'Explore Creations'}</span>
-                <ArrowRight className="w-4 h-4" />
-              </a>
+      {/* IDEA 2: Sleek Bottom Caption Bar (Leaves the whole image clear & unobstructed) */}
+      <div className="relative z-20 w-full bg-gradient-to-t from-black/95 via-black/75 to-transparent pt-20 pb-7 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
+          
+          {/* Collection Title & Subtitle */}
+          <div className="space-y-2 max-w-2xl">
+            {currentSlide.badge && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-400/25 to-amber-600/20 text-amber-300 text-xs font-semibold tracking-wide border border-amber-400/40 shadow-xs backdrop-blur-md">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                <span>{currentSlide.badge}</span>
+              </div>
             )}
 
-            <a
-              href="#catalog"
-              className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md px-6 py-3 rounded-full font-semibold text-xs uppercase tracking-wider transition-all cursor-pointer"
-            >
-              Browse All Weaves
-            </a>
+            <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight drop-shadow-lg">
+              {currentSlide.title}
+            </h1>
+
+            <p className="text-xs sm:text-sm text-rose-100/90 font-light leading-relaxed max-w-xl">
+              {currentSlide.subtitle}
+            </p>
           </div>
+
+          {/* Right Section: Updated Boutique Trust Badges + CTA Button */}
+          <div className="flex flex-wrap items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+            
+            {/* Updated Boutique Trust Badges (Removed Silk Mark & Weavers) */}
+            <div className="hidden xl:flex items-center gap-3">
+              <div className="bg-black/50 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/15 text-left shadow-md flex items-center gap-2.5">
+                <ShieldCheck className="w-5 h-5 text-amber-300 shrink-0" />
+                <div>
+                  <h4 className="text-[11px] font-bold text-white tracking-wide">100% Quality Assured</h4>
+                  <p className="text-[9px] text-zinc-300">Premium Boutique Fabrics</p>
+                </div>
+              </div>
+
+              <div className="bg-black/50 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/15 text-left shadow-md flex items-center gap-2.5">
+                <Clock className="w-5 h-5 text-amber-300 shrink-0" />
+                <div>
+                  <h4 className="text-[11px] font-bold text-white tracking-wide">Direct from Boutique</h4>
+                  <p className="text-[9px] text-zinc-300">Dispatched within 24 Hours</p>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA Button */}
+            <div className="flex items-center gap-3">
+              {currentSlide.buttonLink?.startsWith('/') && !currentSlide.buttonLink.includes('?') ? (
+                <Link
+                  href={currentSlide.buttonLink}
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-black px-6 py-2.5 sm:px-7 sm:py-3 rounded-full font-bold text-xs uppercase tracking-wider hover:shadow-xl hover:shadow-amber-500/30 hover:scale-105 transition-all cursor-pointer shadow-md"
+                >
+                  <span>{currentSlide.buttonText || 'Explore Collection'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              ) : (
+                <a
+                  href={currentSlide.buttonLink || '#catalog'}
+                  onClick={(e) => {
+                    if (currentSlide.buttonLink?.includes('category=')) {
+                      const catSlug = currentSlide.buttonLink.split('category=')[1]
+                      if (catSlug && onSelectCategory) {
+                        e.preventDefault()
+                        onSelectCategory(catSlug)
+                        document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' })
+                      }
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-black px-6 py-2.5 sm:px-7 sm:py-3 rounded-full font-bold text-xs uppercase tracking-wider hover:shadow-xl hover:shadow-amber-500/30 hover:scale-105 transition-all cursor-pointer shadow-md"
+                >
+                  <span>{currentSlide.buttonText || 'Explore Collection'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </a>
+              )}
+
+              <a
+                href="#catalog"
+                className="hidden sm:inline-flex bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md px-5 py-2.5 sm:py-3 rounded-full font-semibold text-xs uppercase tracking-wider transition-all cursor-pointer"
+              >
+                All Collections
+              </a>
+            </div>
+
+          </div>
+
         </div>
 
-        {/* Heritage Trust Badges */}
-        <div className="hidden lg:grid grid-cols-2 gap-3.5 w-full max-w-xs shrink-0">
-          <div className="bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-center shadow-lg hover:border-amber-400/40 transition-colors">
-            <ShieldCheck className="w-6 h-6 text-amber-300 mx-auto mb-1.5" />
-            <h4 className="text-xs font-bold text-white tracking-wide">100% Authentic</h4>
-            <p className="text-[10px] text-rose-200/80 mt-0.5">Silk Mark Certified Weaves</p>
+        {/* Slide Indicators / Dots */}
+        {slideCount > 1 && (
+          <div className="mt-5 flex items-center justify-center gap-2">
+            {activeSlides.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentIndex(idx)}
+                aria-label={`Go to slide ${idx + 1}`}
+                className={`transition-all duration-300 rounded-full cursor-pointer ${
+                  idx === currentIndex
+                    ? 'w-8 h-1.5 bg-gradient-to-r from-amber-400 to-amber-500 shadow-sm shadow-amber-400/50'
+                    : 'w-2 h-1.5 bg-white/40 hover:bg-white/70'
+                }`}
+              />
+            ))}
           </div>
-          <div className="bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-center shadow-lg hover:border-amber-400/40 transition-colors">
-            <Clock className="w-6 h-6 text-amber-300 mx-auto mb-1.5" />
-            <h4 className="text-xs font-bold text-white tracking-wide">Direct Weavers</h4>
-            <p className="text-[10px] text-rose-200/80 mt-0.5">Dispatched within 24 Hours</p>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* Navigation Arrows (visible when more than 1 slide) */}
+      {/* Navigation Arrows */}
       {slideCount > 1 && (
         <>
           <button
@@ -181,24 +210,6 @@ export default function HeroSlider({
             <ChevronRight className="w-5 h-5" />
           </button>
         </>
-      )}
-
-      {/* Slide Indicators / Dots */}
-      {slideCount > 1 && (
-        <div className="absolute bottom-5 left-0 right-0 z-30 flex items-center justify-center gap-2">
-          {activeSlides.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setCurrentIndex(idx)}
-              aria-label={`Go to slide ${idx + 1}`}
-              className={`transition-all duration-300 rounded-full cursor-pointer ${
-                idx === currentIndex
-                  ? 'w-8 h-2 bg-gradient-to-r from-amber-400 to-amber-500 shadow-sm shadow-amber-400/50'
-                  : 'w-2 h-2 bg-white/40 hover:bg-white/70'
-              }`}
-            />
-          ))}
-        </div>
       )}
     </section>
   )

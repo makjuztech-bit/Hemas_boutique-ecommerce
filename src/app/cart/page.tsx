@@ -297,7 +297,7 @@ export default function CartPage() {
                 </p>
                 <p className="flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Quality Assured Handloom Weaves</span>
+                  <span>Quality Assured Boutique Fabrics</span>
                 </p>
               </div>
             </div>
