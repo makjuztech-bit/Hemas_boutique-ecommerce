@@ -7,7 +7,6 @@ export type HeroSlide = {
   buttonLink: string
   imageUrl: string
   isActive: boolean
-  imagePosition?: 'top' | 'center' | 'bottom'
 }
 
 export type StorefrontConfig = {
@@ -45,7 +44,6 @@ export const DEFAULT_STOREFRONT_CONFIG: StorefrontConfig = {
       buttonLink: "/products?category=designer-kurtis",
       imageUrl: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=1920&q=90",
       isActive: true,
-      imagePosition: "top",
     },
     {
       id: "slide-2",
@@ -56,7 +54,6 @@ export const DEFAULT_STOREFRONT_CONFIG: StorefrontConfig = {
       buttonLink: "/products?category=maternity-feeding-wear",
       imageUrl: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1920&q=90",
       isActive: true,
-      imagePosition: "top",
     },
     {
       id: "slide-3",
@@ -67,7 +64,6 @@ export const DEFAULT_STOREFRONT_CONFIG: StorefrontConfig = {
       buttonLink: "/products?category=handloom-daily-wear",
       imageUrl: "https://images.unsplash.com/photo-1609357605129-26f69add5d6e?auto=format&fit=crop&w=1920&q=90",
       isActive: true,
-      imagePosition: "top",
     },
   ],
   spotlight: {

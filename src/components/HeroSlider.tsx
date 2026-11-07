@@ -59,20 +59,13 @@ export default function HeroSlider({
 
   return (
     <section
-      className="relative overflow-hidden w-full min-h-[500px] sm:min-h-[560px] md:min-h-[640px] lg:min-h-[700px] flex items-end bg-zinc-950 text-white select-none"
+      className="relative overflow-hidden w-full min-h-[480px] sm:min-h-[540px] md:min-h-[620px] flex items-end bg-zinc-950 text-white select-none"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Background Images: Aligned to top so head/face of model is 100% visible */}
+      {/* Background Images: Full screen, completely unobstructed in the middle & top */}
       {activeSlides.map((slide, idx) => {
         const isCurrent = idx === currentIndex
-        const posClass =
-          slide.imagePosition === 'center'
-            ? 'object-center'
-            : slide.imagePosition === 'bottom'
-            ? 'object-bottom'
-            : 'object-top' // Default: top aligned so head & face are never cropped
-
         return (
           <div
             key={slide.id || idx}
@@ -80,14 +73,16 @@ export default function HeroSlider({
               isCurrent ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
             }`}
           >
-            {/* Background Image: Bright, crystal clear, anchored from the top */}
+            {/* Background Image: Bright & 100% visible */}
             <img
               src={slide.imageUrl}
               alt={slide.title}
-              className={`w-full h-full object-cover ${posClass} origin-top transition-transform duration-7000 ease-out ${
-                isCurrent ? 'scale-[1.01]' : 'scale-100'
+              className={`w-full h-full object-cover object-center transition-transform duration-10000 ease-out ${
+                isCurrent ? 'scale-105' : 'scale-100'
               }`}
             />
+            {/* Soft top gradient only to blend with header */}
+            <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-black/40 to-transparent"></div>
           </div>
         )
       })}
