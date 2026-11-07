@@ -115,12 +115,13 @@ export default function AdminStorefrontBannersPage() {
     const newSlide: HeroSlide = {
       id: `slide-${Date.now()}`,
       badge: 'New Collection & Offer',
-      title: 'Grand Festive Silk Showcase',
-      subtitle: 'Handcrafted luxury ethnic ensembles woven for celebratory occasions.',
+      title: 'Grand Festive Boutique Showcase',
+      subtitle: 'Handcrafted luxury designer kurtis and ethnic ensembles designed for celebratory occasions.',
       buttonText: 'Shop New Arrivals',
       buttonLink: '/products',
-      imageUrl: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1920&q=85',
+      imageUrl: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=1920&q=85',
       isActive: true,
+      imagePosition: 'top',
     }
 
     setConfig({
@@ -332,18 +333,24 @@ export default function AdminStorefrontBannersPage() {
 
                       <div className="relative aspect-video rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 group">
                         <img
-                          src={slide.imageUrl || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c'}
+                          src={slide.imageUrl || 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb'}
                           alt={slide.title}
-                          className="w-full h-full object-cover"
+                          className={`w-full h-full object-cover ${
+                            slide.imagePosition === 'center'
+                              ? 'object-center'
+                              : slide.imagePosition === 'bottom'
+                              ? 'object-bottom'
+                              : 'object-top'
+                          }`}
                         />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <span className="text-[10px] text-white bg-black/80 px-2 py-1 rounded-md font-medium">
-                            Slide Preview
+                            Slide Preview (Head & Face Focus)
                           </span>
                         </div>
                       </div>
 
-                      <div className="space-y-1.5">
+                      <div className="space-y-2">
                         <input
                           type="url"
                           placeholder="Paste image URL (Unsplash, Cloudinary)..."
@@ -363,6 +370,20 @@ export default function AdminStorefrontBannersPage() {
                             disabled={isUploading}
                           />
                         </label>
+
+                        {/* Image Focus / Alignment */}
+                        <div className="flex items-center justify-between pt-1 border-t border-zinc-800/80">
+                          <span className="text-[10px] text-zinc-400 font-medium">Crop Alignment:</span>
+                          <select
+                            value={slide.imagePosition || 'top'}
+                            onChange={(e) => handleUpdateSlideField(idx, 'imagePosition', e.target.value)}
+                            className="bg-zinc-900 border border-zinc-700 text-amber-300 text-[10px] rounded px-2 py-1 focus:outline-none focus:border-amber-500 cursor-pointer font-medium"
+                          >
+                            <option value="top">Top (Head & Face 100% Visible)</option>
+                            <option value="center">Center</option>
+                            <option value="bottom">Bottom</option>
+                          </select>
+                        </div>
                       </div>
                     </div>
 
